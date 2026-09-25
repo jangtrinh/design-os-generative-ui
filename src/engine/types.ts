@@ -1,17 +1,23 @@
-export interface UIComponentSpec {
-  id: string;
-  type: string;
-  props: Record<string, any>;
-}
+import { z } from "zod";
 
-export type LayoutType = "single" | "stack" | "grid-2" | "dashboard" | "hero-first";
+export const UIComponentSpecSchema = z.object({
+  id: z.string(),
+  type: z.string(),
+  props: z.record(z.any()),
+});
 
-export interface UISpec {
-  layout: LayoutType;
-  title?: string;
-  description?: string;
-  components: UIComponentSpec[];
-}
+export const LayoutTypeSchema = z.enum(["single", "stack", "grid-2", "dashboard", "hero-first"]);
+
+export const UISpecSchema = z.object({
+  layout: LayoutTypeSchema,
+  title: z.string().optional(),
+  description: z.string().optional(),
+  components: z.array(UIComponentSpecSchema),
+});
+
+export type UIComponentSpec = z.infer<typeof UIComponentSpecSchema>;
+export type LayoutType = z.infer<typeof LayoutTypeSchema>;
+export type UISpec = z.infer<typeof UISpecSchema>;
 
 export interface DecisionTelemetry {
   engine: "laya-mlx" | "jev-cloud" | "deterministic";
