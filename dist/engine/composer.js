@@ -123,15 +123,32 @@ export class DesignOSComposer {
     assembleSpec(prompt, answers) {
         const primaryChoice = answers.primary_widget?.choice || "metric_card";
         const layoutChoice = answers.layout_topology?.choice || "stack";
-        const isDashboard = answers.is_dashboard_intent?.truth_probability
-            ? answers.is_dashboard_intent.truth_probability > 0.5
-            : prompt.toLowerCase().includes("dashboard") || prompt.toLowerCase().includes("doanh thu");
-        const isMarketing = answers.is_marketing_intent?.truth_probability
-            ? answers.is_marketing_intent.truth_probability > 0.5
+        const getTruthProb = (ans) => {
+            if (!ans)
+                return undefined;
+            if (typeof ans.truth_probability === "number")
+                return ans.truth_probability;
+            if (typeof ans.noul === "number")
+                return ans.noul;
+            return undefined;
+        };
+        const probDashboard = getTruthProb(answers.is_dashboard_intent);
+        const probMarketing = getTruthProb(answers.is_marketing_intent);
+        const probAlert = getTruthProb(answers.has_warning_or_alert);
+        const isDashboard = probDashboard !== undefined
+            ? probDashboard > 0.4
+            : prompt.toLowerCase().includes("dashboard") ||
+                prompt.toLowerCase().includes("doanh thu") ||
+                prompt.toLowerCase().includes("doanh số") ||
+                prompt.toLowerCase().includes("báo cáo");
+        const isMarketing = probMarketing !== undefined
+            ? probMarketing > 0.5
             : prompt.toLowerCase().includes("landing") || prompt.toLowerCase().includes("giá");
-        const hasAlert = answers.has_warning_or_alert?.truth_probability
-            ? answers.has_warning_or_alert.truth_probability > 0.5
-            : prompt.toLowerCase().includes("lỗi") || prompt.toLowerCase().includes("cảnh báo");
+        const hasAlert = probAlert !== undefined
+            ? probAlert > 0.65
+            : prompt.toLowerCase().includes("lỗi") ||
+                prompt.toLowerCase().includes("cảnh báo") ||
+                prompt.toLowerCase().includes("khẩn cấp");
         const components = [];
         // Alert Banner if detected
         if (hasAlert && this.catalog.alert_banner) {
