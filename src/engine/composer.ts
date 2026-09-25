@@ -210,6 +210,25 @@ export class DesignOSComposer {
       });
     }
 
+    // If primaryChoice is a specific operational or custom component (e.g. kanban_board, shipment_tracker)
+    const isMarketingComponent = ["hero_section", "feature_grid", "pricing_table", "cta_section"].includes(primaryChoice);
+    const isStandardDashboardComponent = ["metric_card", "trend_chart", "data_table"].includes(primaryChoice);
+
+    if (!isMarketingComponent && !isStandardDashboardComponent && primaryChoice !== "alert_banner" && this.catalog[primaryChoice]) {
+      const specificMeta = this.catalog[primaryChoice];
+      components.push({
+        id: `widget-${primaryChoice}`,
+        type: specificMeta.id,
+        props: specificMeta.defaultProps,
+      });
+
+      return {
+        layout: layoutChoice === "dashboard" ? "grid-2" : layoutChoice,
+        title: specificMeta.name,
+        components,
+      };
+    }
+
     if (isMarketing) {
       // Compose Marketing Stack
       if (this.catalog.hero_section) {

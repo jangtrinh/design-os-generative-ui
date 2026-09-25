@@ -6,6 +6,7 @@ import { HeroSection, HeroSectionSchema } from "./marketing/HeroSection.js";
 import { FeatureGrid, FeatureGridSchema } from "./marketing/FeatureGrid.js";
 import { PricingTable, PricingTableSchema } from "./marketing/PricingTable.js";
 import { CTASection, CTASectionSchema } from "./marketing/CTASection.js";
+import { KanbanBoard, KanbanBoardSchema, kanbanDefaultProps, kanbanSystem1Criteria, } from "./operations/KanbanBoard.js";
 export const defaultCatalog = {
     metric_card: {
         id: "metric_card",
@@ -198,6 +199,16 @@ export const defaultCatalog = {
             guaranteeText: "Không cần thẻ tín dụng • Cài đặt dưới 5 phút",
         },
         component: CTASection,
+    },
+    kanban_board: {
+        id: "kanban_board",
+        name: "Bảng Kanban Công Việc (KanbanBoard)",
+        category: "dashboard",
+        description: "Bảng quản lý công việc và tiến độ theo các cột trạng thái linh hoạt",
+        system1Criteria: kanbanSystem1Criteria,
+        schema: KanbanBoardSchema,
+        defaultProps: kanbanDefaultProps,
+        component: KanbanBoard,
     },
 };
 //# sourceMappingURL=registry.js.map

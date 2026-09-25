@@ -9,6 +9,7 @@ export * from "./catalog/marketing/HeroSection.js";
 export * from "./catalog/marketing/FeatureGrid.js";
 export * from "./catalog/marketing/PricingTable.js";
 export * from "./catalog/marketing/CTASection.js";
+export * from "./catalog/operations/KanbanBoard.js";
 // System 1 Decision & Cascade Engine
 export * from "./engine/types.js";
 export * from "./engine/laya-adapter.js";

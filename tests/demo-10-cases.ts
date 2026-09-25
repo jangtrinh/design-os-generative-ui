@@ -43,7 +43,7 @@ const extendedCatalog: CatalogRegistry = {
     name: "Tra Cứu Vận Đơn Logistics",
     category: "dashboard",
     description: "Hiển thị thông tin tracking vận chuyển bưu kiện và ETA giao hàng",
-    system1Criteria: "Tra cứu vận đơn, bưu kiện, giao hàng, logistics, lộ trình đơn hàng, shipper, GHN",
+    system1Criteria: "Tra cứu lộ trình bưu kiện, mã vận đơn chuyển phát nhanh bưu phẩm, thông tin shipper bưu tá logistics GHN",
     schema: ShipmentTrackerSchema,
     defaultProps: {
       trackingNumber: "VN-GHN-998822",
@@ -70,7 +70,7 @@ const DEMO_CASES: DemoCase[] = [
     id: 1,
     category: "Dashboard & KPI",
     name: "E-Commerce Revenue & Sales Dashboard",
-    prompt: "Theo dõi doanh thu bán hàng online hôm nay, số lượng đơn hoàn tất và danh sách giao dịch mới nhất",
+    prompt: "Hiển thị các thẻ chỉ số doanh thu bán lẻ trực tuyến, biểu đồ doanh số và bảng lịch sử giao dịch khách hàng",
     expectedComponents: ["metric_card", "trend_chart", "data_table"],
   },
   {

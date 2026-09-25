@@ -8,6 +8,7 @@ export * from "./catalog/marketing/HeroSection.js";
 export * from "./catalog/marketing/FeatureGrid.js";
 export * from "./catalog/marketing/PricingTable.js";
 export * from "./catalog/marketing/CTASection.js";
+export * from "./catalog/operations/KanbanBoard.js";
 export * from "./engine/types.js";
 export * from "./engine/laya-adapter.js";
 export * from "./engine/jev-adapter.js";
