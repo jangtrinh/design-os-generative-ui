@@ -7,7 +7,7 @@ export default defineConfig({
   root: "./playground",
   resolve: {
     alias: {
-      "design-os-generative-ui": path.resolve(__dirname, "./src"),
+      "design-os-generative-ui": path.resolve(__dirname, "../src"),
     },
   },
   server: {
