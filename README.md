@@ -11,6 +11,16 @@
 
 ---
 
+<p align="center">
+  <img src="assets/design-os-speed-demo.gif" alt="Design OS Generative UI Real-Time Speed Demo" width="100%" style="border-radius: 12px; border: 1px solid #27272a;" />
+</p>
+
+<p align="center">
+  <em>⚡ Live demo recorded at 60fps in the interactive playground: instant sub-50ms layout snapping without LLM token streaming delay.</em>
+</p>
+
+---
+
 ## ⚡ The Shift: Why System 1 Generative UI?
 
 Traditional Generative UI tools (v0, Claude Canvas, ChatGPT Canvas) ask a large language model to stream raw JSX or HTML tokens. In production applications, this introduces severe bottlenecks:
