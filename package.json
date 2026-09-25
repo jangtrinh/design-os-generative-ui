@@ -12,6 +12,10 @@
       "import": "./dist/index.js"
     }
   },
+  "files": [
+    "dist",
+    "README.md"
+  ],
   "scripts": {
     "build": "tsc",
     "prepare": "tsc",
