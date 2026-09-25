@@ -20,6 +20,8 @@
   "scripts": {
     "build": "tsc",
     "prepare": "tsc",
+    "test:all": "tsx tests/run-all-tests.ts",
+    "test:demo": "tsx tests/demo-10-cases.ts",
     "dev:playground": "vite playground",
     "build:playground": "vite build playground"
   },

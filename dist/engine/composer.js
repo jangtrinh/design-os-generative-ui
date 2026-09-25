@@ -135,20 +135,30 @@ export class DesignOSComposer {
         const probDashboard = getTruthProb(answers.is_dashboard_intent);
         const probMarketing = getTruthProb(answers.is_marketing_intent);
         const probAlert = getTruthProb(answers.has_warning_or_alert);
-        const isDashboard = probDashboard !== undefined
-            ? probDashboard > 0.4
-            : prompt.toLowerCase().includes("dashboard") ||
-                prompt.toLowerCase().includes("doanh thu") ||
-                prompt.toLowerCase().includes("doanh số") ||
-                prompt.toLowerCase().includes("báo cáo");
-        const isMarketing = probMarketing !== undefined
-            ? probMarketing > 0.5
-            : prompt.toLowerCase().includes("landing") || prompt.toLowerCase().includes("giá");
-        const hasAlert = probAlert !== undefined
-            ? probAlert > 0.65
-            : prompt.toLowerCase().includes("lỗi") ||
-                prompt.toLowerCase().includes("cảnh báo") ||
-                prompt.toLowerCase().includes("khẩn cấp");
+        const p = prompt.toLowerCase();
+        const isDashboardKeyword = p.includes("dashboard") ||
+            p.includes("doanh thu") ||
+            p.includes("doanh số") ||
+            p.includes("báo cáo") ||
+            p.includes("giao dịch") ||
+            p.includes("dòng tiền") ||
+            p.includes("retention") ||
+            p.includes("tăng trưởng");
+        const isMarketingKeyword = p.includes("landing") ||
+            p.includes("giới thiệu") ||
+            p.includes("trang chủ") ||
+            p.includes("bảng giá") ||
+            p.includes("gói dịch vụ") ||
+            p.includes("pricing");
+        const dashScore = probDashboard ?? (isDashboardKeyword ? 0.85 : 0.2);
+        const mktScore = probMarketing ?? (isMarketingKeyword ? 0.85 : 0.2);
+        const isDashboard = dashScore >= 0.4 && dashScore >= mktScore;
+        const isMarketing = mktScore >= 0.5 && mktScore > dashScore;
+        const hasAlert = (probAlert ?? 0) > 0.65 ||
+            p.includes("lỗi") ||
+            p.includes("cảnh báo") ||
+            p.includes("khẩn cấp") ||
+            p.includes("bất thường");
         const components = [];
         // Alert Banner if detected
         if (hasAlert && this.catalog.alert_banner) {
@@ -159,7 +169,7 @@ export class DesignOSComposer {
                     ...this.catalog.alert_banner.defaultProps,
                     title: "Thông Báo Trạng Thái",
                     message: `Hệ thống phát hiện ghi chú: "${prompt.slice(0, 80)}"`,
-                    severity: prompt.toLowerCase().includes("lỗi") ? "critical" : "warning",
+                    severity: p.includes("lỗi") || p.includes("sập") || p.includes("khẩn cấp") ? "critical" : "warning",
                 },
             });
         }
@@ -182,7 +192,8 @@ export class DesignOSComposer {
                     props: this.catalog.feature_grid.defaultProps,
                 });
             }
-            if (prompt.toLowerCase().includes("giá") && this.catalog.pricing_table) {
+            if ((p.includes("giá") || p.includes("gói") || p.includes("pricing") || primaryChoice === "pricing_table") &&
+                this.catalog.pricing_table) {
                 components.push({
                     id: "pricing-main",
                     type: "pricing_table",

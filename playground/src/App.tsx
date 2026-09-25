@@ -8,20 +8,44 @@ const composer = new DesignOSComposer();
 
 const PRESETS = [
   {
-    label: "📊 Dashboard Doanh Số & Đơn Hàng",
-    prompt: "Dựng dashboard theo dõi doanh số tuần này, biểu đồ tăng trưởng và danh sách 10 đơn hàng mới nhất",
+    label: "📊 Doanh Số & Đơn Hàng",
+    prompt: "Theo dõi doanh thu bán hàng online hôm nay, số lượng đơn hoàn tất và danh sách giao dịch mới nhất",
   },
   {
-    label: "🚀 Landing Page Giới Thiệu Sản Phẩm",
-    prompt: "Tạo landing page giới thiệu phần mềm AI thế hệ mới với 3 tính năng cốt lõi và nút dùng thử",
+    label: "🚀 Landing Page Sản Phẩm",
+    prompt: "Tạo landing page hiện đại phong cách Stark White giới thiệu công cụ AI Coding Assistant với 3 tính năng và nút dùng thử",
   },
   {
-    label: "💰 Bảng Giá 3 Gói Dịch Vụ SaaS",
-    prompt: "Hiển thị bảng giá dịch vụ gồm các gói Starter, Pro và Enterprise",
+    label: "💰 Bảng Giá 3 Gói SaaS",
+    prompt: "Hiển thị bảng so sánh chi tiết các gói dịch vụ Starter, Professional và Enterprise cho khách hàng doanh nghiệp",
   },
   {
-    label: "⚠️ Cảnh Báo Sự Cố Hệ Thống",
-    prompt: "Thông báo lỗi khẩn cấp: cơ sở dữ liệu đang bảo trì đột xuất, vui lòng liên hệ hỗ trợ kỹ thuật",
+    label: "⚠️ Cảnh Báo Sập Cluster",
+    prompt: "Cảnh báo khẩn cấp: Cluster Kubernetes worker-node-03 chạm ngưỡng 96% Memory, nguy cơ sập pod",
+  },
+  {
+    label: "📈 Xu Hướng Tăng Trưởng",
+    prompt: "Biểu đồ xu hướng tăng trưởng dòng tiền và phân tích biến động doanh thu 30 ngày qua",
+  },
+  {
+    label: "👥 Retention & Khách Hàng",
+    prompt: "Bảng thống kê tỷ lệ người dùng quay lại retention rate, khách hàng VIP và danh sách người dùng mới",
+  },
+  {
+    label: "🛡️ Cảnh Báo An Ninh 2FA",
+    prompt: "Thông báo bảo mật: Phát hiện nhiều lần đăng nhập bất thường từ dải IP lạ, yêu cầu đổi mật khẩu ngay",
+  },
+  {
+    label: "🧩 3 Trụ Cột Tính Năng",
+    prompt: "Trang giới thiệu 3 tính năng cốt lõi của hệ thống: Sub-50ms Edge Inference, Zod Type-Safety và Local Unified Memory",
+  },
+  {
+    label: "📦 Tra Cứu Vận Đơn",
+    prompt: "Khách hàng muốn tra cứu tình trạng vận chuyển mã bưu phẩm và thời gian giao hàng",
+  },
+  {
+    label: "🔄 Dữ Liệu Realtime Database",
+    prompt: "Dựng dashboard doanh số chi nhánh với dữ liệu thời gian thực được inject trực tiếp từ database PostgreSQL",
   },
 ];
 
