@@ -1,91 +1,110 @@
 # design-os-generative-ui
 
+[![License](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](LICENSE)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.7+-blue.svg)](https://www.typescriptlang.org/)
+[![Tests](https://img.shields.io/badge/Tests-15%2F15%20Passed-emerald.svg)](tests/run-all-tests.ts)
+[![Latency](https://img.shields.io/badge/Latency-6.53ms%20P50-brightgreen.svg)](#-empirical-benchmarks-on-apple-silicon)
+[![Purple Ban](https://img.shields.io/badge/Design-Stark%20Zinc%20(Purple%20Ban)-zinc.svg)](#-component-catalog)
+
 > **Sub-50ms Real-Time Generative UI Engine**  
 > Powered by **Laya-MLX (Apple Silicon Local Edge)** & **TypeSafe JEV (Cloud API)** with the **Catalog Pattern (Zod)**.
 
 ---
 
-## ⚡ The Problem with Traditional Generative UI
+## ⚡ The Shift: Why System 1 Generative UI?
 
-| Traditional LLM GenUI (v0, Claude Canvas) | Design OS Generative UI (System 1) |
-|---|---|
-| **Slow**: Streams raw JSX code (3,000–8,000 ms lag) | **Instant**: Selects from Catalog in **< 15 ms** (6.5ms via Laya-MLX) |
-| **Fragile**: Hallucinates props, missing tags, breaks CSS | **100% Type-Safe**: Every component is strictly validated with Zod |
-| **Security Risk**: Risk of prompt injection / XSS | **Zero Injection**: AI outputs only validated JSON Specs, never raw code |
-| **Expensive**: Thousands of LLM tokens per generation | **Zero Cost**: Runs locally on Apple Silicon Unified Memory ($0) |
+Traditional Generative UI tools (v0, Claude Canvas, ChatGPT Canvas) ask a large language model to stream raw JSX or HTML tokens. In production applications, this introduces severe bottlenecks:
+
+| Metric | Traditional LLM GenUI (v0 / Claude) | Design OS Generative UI (System 1) |
+|---|---|---|
+| **Latency** | **3,000 – 8,000 ms** (Streaming lag) | **6.5 ms – 25 ms** (Instant forward pass) |
+| **Correctness** | Fragile: Hallucinates tags, breaks CSS, missing props | **100% Type-Safe**: Validated against Zod schemas |
+| **Security** | High XSS / Prompt Injection attack surface | **Zero Injection**: Outputs purely structural JSON Specs |
+| **Cost** | $0.01 – $0.05 per prompt (Thousands of tokens) | **$0.00** (Local Apple Silicon MLX Unified Memory) |
+| **Aesthetics** | Random styles, clashing design tokens | **Design System Bound**: Stark Zinc, strictly enforced |
 
 ---
 
-## 🏛️ Architecture & Flow
+## 🏛️ Architecture: The Local-First Cascade Router
 
 ```mermaid
-flowchart LR
-    Prompt["User Prompt"] --> Composer["DesignOSComposer"]
+flowchart TD
+    UserPrompt["User Prompt (e.g. 'Xem dashboard doanh số tuần này và cảnh báo lỗi')"] --> Composer["DesignOSComposer (Engine)"]
     
-    subgraph Cascade ["Dual-Tier Decision Cascade"]
-        Composer --> Laya["Laya-MLX Local (~7ms, $0)"]
-        Laya --> Check{"Conf >= 0.30?"}
-        Check -- "Yes (70%)" --> LocalResult["Local Spec"]
-        Check -- "No (30%)" --> Jev["TypeSafe JEV Cloud"]
+    subgraph System1Cascade ["Dual-Tier Decision Cascade"]
+        Composer --> LocalLaya["Laya-MLX Local Edge (~7ms, $0)"]
+        LocalLaya --> CheckConf{"Confidence >= 0.30?"}
+        CheckConf -- "Yes (70% traffic)" --> LocalSpec["Accept Local Layout Decision"]
+        CheckConf -- "No / Complex" --> Escalation["Escalate to TypeSafe JEV Cloud"]
     end
     
-    LocalResult --> Spec["Validated UISpec (JSON)"]
-    Jev --> Spec
+    LocalSpec --> SpecAssembler["Type-Safe Spec Assembler"]
+    Escalation --> SpecAssembler
     
-    Spec --> Renderer["<DesignOSRenderer spec={spec} />"]
-    Renderer --> UI["Real-Time Adaptive UI"]
+    subgraph CatalogRegistry ["Component Catalog (Zod Guarded)"]
+        SpecAssembler <--> Registry["Zod Component Catalog"]
+        Registry --> DashboardGroup["Dashboard (MetricCard, DataTable, TrendChart, Alert)"]
+        Registry --> MarketingGroup["Marketing (Hero, FeatureGrid, Pricing, CTA)"]
+    end
+    
+    SpecAssembler --> UISpec["Validated UI Spec (JSON)"]
+    UISpec --> Renderer["<DesignOSRenderer spec={spec} />"]
+    Renderer --> FinalDOM["Instant Adaptive UI (< 30ms total)"]
 ```
 
 ---
 
-## 🚀 Quick Start
+## 📦 Installation in Any Project
 
-### 1. Installation
-
+### Option A: Install from GitHub
 ```bash
-cd /Users/jangtrinh/Products/design-os-generative-ui
-npm install
-npm run build
+# Using pnpm (recommended)
+pnpm add github:jangtrinh/design-os-generative-ui
+
+# Using npm
+npm install github:jangtrinh/design-os-generative-ui
 ```
 
-### 2. Launch the Interactive Live Playground
-
+### Option B: Local Path Dependency (Workspace)
 ```bash
-npm run dev:playground
+pnpm add /Users/jangtrinh/Products/design-os-generative-ui
 ```
-Open `http://localhost:3300` to experiment with real-time UI generation across:
-- 📊 **Dashboards** (MetricCards, TrendCharts, DataTables)
-- 🚀 **Marketing Landing Pages** (HeroSection, FeatureGrid, PricingTable, CTASection)
-- ⚠️ **System Alerts & Notifications** (AlertBanner)
 
 ---
 
-## 💻 Programmatic Usage in Next.js / React (EaseUI)
+## 🚀 Quickstart in Next.js / React
 
 ```tsx
 import React, { useState } from "react";
 import { DesignOSComposer, DesignOSRenderer, defaultCatalog } from "design-os-generative-ui";
 
 const composer = new DesignOSComposer({
-  cascadeThreshold: 0.30, // Sweet spot: 70% local resolution, 3.4x faster
+  cascadeThreshold: 0.30, // 70% resolved on Mac in ~6.5ms at $0 cost
   localEndpoint: "http://127.0.0.1:8000/predict",
 });
 
-export function AdaptiveDashboard() {
+export function MyAdaptiveScreen() {
   const [spec, setSpec] = useState(null);
+  const [loading, setLoading] = useState(false);
 
-  const handlePrompt = async (userPrompt: string) => {
-    // Generates validated UISpec in ~10ms
-    const { spec, telemetry } = await composer.compose(userPrompt);
-    console.log(`Rendered in ${telemetry.latencyMs}ms using ${telemetry.engine}`);
-    setSpec(spec);
+  const handlePrompt = async (prompt: string) => {
+    setLoading(true);
+    try {
+      // Returns validated UISpec in ~10ms
+      const { spec, telemetry } = await composer.compose(prompt);
+      console.log(`Rendered in ${telemetry.latencyMs}ms via ${telemetry.engine}`);
+      setSpec(spec);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
-    <div>
+    <div className="p-6 max-w-5xl mx-auto space-y-6">
       <input
-        placeholder="Yêu cầu giao diện..."
+        placeholder="Yêu cầu giao diện (VD: Dựng dashboard theo dõi doanh số)..."
         onKeyDown={(e) => e.key === "Enter" && handlePrompt(e.currentTarget.value)}
+        className="w-full px-4 py-2.5 rounded-xl border border-zinc-800 bg-zinc-900 text-white"
       />
 
       {spec && <DesignOSRenderer spec={spec} catalog={defaultCatalog} />}
@@ -96,18 +115,99 @@ export function AdaptiveDashboard() {
 
 ---
 
-## 📦 Component Catalog
+## 🧩 Extending with Custom Components (Zod + System 1)
 
-All components adhere to the **No Violet / Purple Ban** design discipline: modern stark zinc, crisp micro-borders (`border-zinc-200 dark:border-zinc-800`), glassmorphism, and responsive layouts.
+You can register project-specific components into the Catalog. The System 1 engine uses the `system1Criteria` string to determine when to trigger the component:
 
-1. **`metric_card`**: High-contrast KPI metric cards with trends and percentage changes.
-2. **`trend_chart`**: Pure responsive SVG line and bar sparklines with zero heavy charting dependencies.
-3. **`data_table`**: Interactive table with search filter and status pill indicators.
-4. **`alert_banner`**: State alert banners with 4 severity levels and dismissible actions.
-5. **`hero_section`**: Stark EaseUI marketing hero with badge, headline, dual CTAs, and social proof.
-6. **`feature_grid`**: 3-card micro-border grid with Lucide icons.
-7. **`pricing_table`**: Multi-tier subscription cards with highlight badge and feature checklists.
-8. **`cta_section`**: High-impact stark black conversion section with email input.
+```tsx
+import { z } from "zod";
+import { defaultCatalog, DesignOSComposer, type CatalogRegistry } from "design-os-generative-ui";
+
+// 1. Define Zod schema
+const UserKpiSchema = z.object({
+  activeUsers: z.number(),
+  retentionRate: z.string(),
+  topRegion: z.string(),
+});
+
+// 2. Build component
+function UserKpiWidget({ activeUsers, retentionRate, topRegion }: z.infer<typeof UserKpiSchema>) {
+  return (
+    <div className="rounded-xl border border-zinc-800 bg-zinc-900 p-5">
+      <h4 className="text-xs font-medium text-zinc-400">Tăng Trưởng Người Dùng</h4>
+      <div className="text-2xl font-bold mt-1 text-white">{activeUsers.toLocaleString()}</div>
+      <div className="text-xs text-emerald-400 mt-2">Retention: {retentionRate} • {topRegion}</div>
+    </div>
+  );
+}
+
+// 3. Register in Catalog
+export const myCustomCatalog: CatalogRegistry = {
+  ...defaultCatalog,
+  user_kpi: {
+    id: "user_kpi",
+    name: "User Growth Widget",
+    category: "dashboard",
+    description: "Hiển thị người dùng hoạt động và tỷ lệ giữ chân",
+    system1Criteria: "Thống kê người dùng hoạt động, retention rate, nhân khẩu học hoặc tăng trưởng user",
+    schema: UserKpiSchema,
+    defaultProps: { activeUsers: 8420, retentionRate: "68.4%", topRegion: "Việt Nam" },
+    component: UserKpiWidget,
+  }
+};
+
+// 4. Use custom composer
+const customComposer = new DesignOSComposer({}, myCustomCatalog);
+```
+
+---
+
+## 🔄 Dynamic Runtime Data Hydration (Astra Pattern)
+
+> **Important**: Never ask an AI model to guess real financial figures or live database rows. Let System 1 select the structural components, and hydrate real data on the frontend:
+
+```tsx
+export function LiveDataDashboard({ spec }: { spec: UISpec }) {
+  const { data: liveKpi } = useSWR("/api/kpi/realtime");
+
+  // Hydrate spec with live database figures
+  const hydratedSpec = {
+    ...spec,
+    components: spec.components.map((c) => {
+      if (c.type === "metric_card" && liveKpi) {
+        return {
+          ...c,
+          props: {
+            ...c.props,
+            value: liveKpi.revenueFormatted,
+            change: liveKpi.growthRate,
+          },
+        };
+      }
+      return c;
+    }),
+  };
+
+  return <DesignOSRenderer spec={hydratedSpec} />;
+}
+```
+
+---
+
+## 🎨 Component Catalog & Design Rules
+
+All components strictly comply with the **No Violet / Purple Ban** design discipline: stark zinc palette (`#18181b`, `#f4f4f5`), crisp micro-borders, glassmorphism, and responsive grid layouts.
+
+| Component ID | Category | Description | Primary Use Case |
+|---|:---:|---|---|
+| `metric_card` | Dashboard | KPI card with value, trend icon & percentage | Doanh thu, đơn hàng, user, tỷ lệ chuyển đổi |
+| `trend_chart` | Dashboard | Pure SVG line/bar chart with period markers | Xu hướng 7 ngày, biểu đồ tăng trưởng |
+| `data_table` | Dashboard | Table with search input, columns & status pills | Danh sách giao dịch, đơn hàng, nhật ký hệ thống |
+| `alert_banner` | Feedback | Status banner (info, warning, critical, success) | Cảnh báo lỗi, thông báo bảo trì, sự cố |
+| `hero_section` | Marketing | Stark EaseUI hero with badge, headline, dual CTAs | Trang chủ, banner đầu trang sản phẩm |
+| `feature_grid` | Marketing | 3-card micro-border grid with Lucide icons | Giới thiệu tính năng, ưu điểm công nghệ |
+| `pricing_table` | Marketing | Multi-tier cards with highlight badge & checklists | Bảng giá SaaS, so sánh gói cước dịch vụ |
+| `cta_section` | Marketing | High-contrast black section with email input | Kêu gọi đăng ký, chốt đơn cuối trang |
 
 ---
 
@@ -115,10 +215,24 @@ All components adhere to the **No Violet / Purple Ban** design discipline: moder
 
 Measured on Apple Silicon Mac (`macOS`, `MLX 0.32.2`, `torch 2.14 MPS`):
 
-- **Laya-MLX P50 Decision Latency**: **6.53 ms**
-- **Cascade Router Speedup**: **3.41x faster** than pure cloud API
-- **Local Resolution Ratio**: **70.0%** of prompts resolved locally on Mac
-- **API Cost Reduction**: **70.0%**
+* **Laya-MLX P50 Decision Latency**: **6.53 ms**
+* **Cascade Router Speedup**: **3.41x faster** than pure cloud API
+* **Local Resolution Ratio**: **70.0%** of prompts resolved locally on Mac
+* **API Cost Reduction**: **70.0%**
+* **Test Suite Passing**: **15 / 15 Tests Passed (100%)**
+
+---
+
+## 🧪 Running Tests & Playground
+
+```bash
+# Run 15-case automated test suite (Zod, Composer, XSS/SQLi security, Schema boundary)
+npx tsx tests/run-all-tests.ts
+
+# Launch Live Interactive Playground (Vite + React)
+npm run dev:playground
+# Open http://localhost:3300
+```
 
 ---
 
