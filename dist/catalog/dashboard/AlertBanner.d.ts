@@ -9,13 +9,13 @@ export declare const AlertBannerSchema: z.ZodObject<{
 }, "strip", z.ZodTypeAny, {
     message: string;
     title: string;
-    severity: "success" | "info" | "warning" | "critical";
+    severity: "critical" | "success" | "info" | "warning";
     dismissible: boolean;
     actionLabel?: string | undefined;
 }, {
     message: string;
     title: string;
-    severity?: "success" | "info" | "warning" | "critical" | undefined;
+    severity?: "critical" | "success" | "info" | "warning" | undefined;
     actionLabel?: string | undefined;
     dismissible?: boolean | undefined;
 }>;

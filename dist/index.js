@@ -10,8 +10,10 @@ export * from "./catalog/marketing/FeatureGrid.js";
 export * from "./catalog/marketing/PricingTable.js";
 export * from "./catalog/marketing/CTASection.js";
 export * from "./catalog/operations/KanbanBoard.js";
+export * from "./catalog/operations/SwarmMissionControl.js";
 // System 1 Decision & Cascade Engine
 export * from "./engine/types.js";
+export * from "./engine/events.js";
 export * from "./engine/laya-adapter.js";
 export * from "./engine/jev-adapter.js";
 export * from "./engine/composer.js";

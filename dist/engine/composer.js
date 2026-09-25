@@ -19,6 +19,7 @@ export class DesignOSComposer {
         const startTime = performance.now();
         const threshold = options.cascadeThreshold ?? this.cascadeThreshold;
         const forceCloud = options.forceCloud ?? false;
+        const localOnly = options.localOnly ?? false;
         // 1. Build Criteria mapping from Catalog for System 1
         const componentCriteria = {};
         for (const [id, meta] of Object.entries(this.catalog)) {
@@ -78,11 +79,11 @@ export class DesignOSComposer {
                 }
             }
             catch {
-                // Fallback to JEV
+                // Fallback to JEV or Deterministic
             }
         }
-        // 3. Cascade Layer 2: Escalate to TypeSafe JEV Cloud API when confidence < threshold or forced
-        if (Object.keys(answers).length === 0 && this.jev.isAvailable()) {
+        // 3. Cascade Layer 2: Escalate to TypeSafe JEV Cloud API when confidence < threshold or forced (unless localOnly)
+        if (Object.keys(answers).length === 0 && !localOnly && this.jev.isAvailable()) {
             try {
                 const jevResp = await this.jev.predict({
                     state: `User UI Request: "${prompt}"`,
@@ -106,8 +107,9 @@ export class DesignOSComposer {
             confidence = 0.75;
             escalated = false;
         }
-        // 5. Assemble UI Spec from System 1 Decisions
-        const spec = this.assembleSpec(prompt, answers);
+        // 5. Assemble UI Spec from System 1 Decisions & enrich with Action Contracts and Blast Radius
+        const rawSpec = this.assembleSpec(prompt, answers);
+        const spec = this.enrichSpec(rawSpec);
         const latencyMs = performance.now() - startTime;
         return {
             spec,
@@ -117,7 +119,30 @@ export class DesignOSComposer {
                 confidence: Math.round(confidence * 100) / 100,
                 escalated,
                 selectedComponents: spec.components.map((c) => c.type),
+                localEnforced: localOnly,
+                blastRadius: spec.blastRadius ?? "low",
             },
+        };
+    }
+    enrichSpec(spec) {
+        const enrichedComponents = spec.components.map((c) => {
+            const meta = this.catalog[c.type];
+            return {
+                ...c,
+                actions: c.actions ?? meta?.actions,
+                blastRadius: c.blastRadius ?? meta?.blastRadius,
+            };
+        });
+        const blastRadius = spec.blastRadius ??
+            (enrichedComponents.some((c) => c.blastRadius === "critical" || (c.type === "alert_banner" && c.props?.severity === "critical"))
+                ? "critical"
+                : enrichedComponents.some((c) => c.blastRadius === "medium" || c.type === "alert_banner")
+                    ? "medium"
+                    : "low");
+        return {
+            ...spec,
+            components: enrichedComponents,
+            blastRadius,
         };
     }
     assembleSpec(prompt, answers) {

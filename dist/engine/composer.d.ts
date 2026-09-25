@@ -10,6 +10,7 @@ export declare class DesignOSComposer {
      * Evaluates user prompt and rapidly composes a validated UI Spec via System 1 Cascade Router.
      */
     compose(prompt: string, options?: Partial<ComposeOptions>): Promise<ComposeResult>;
+    private enrichSpec;
     private assembleSpec;
     private evaluateDeterministic;
 }

@@ -8,20 +8,20 @@ export declare const DataTableSchema: z.ZodObject<{
         label: z.ZodString;
         align: z.ZodDefault<z.ZodEnum<["left", "center", "right"]>>;
     }, "strip", z.ZodTypeAny, {
-        key: string;
         label: string;
+        key: string;
         align: "left" | "center" | "right";
     }, {
-        key: string;
         label: string;
+        key: string;
         align?: "left" | "center" | "right" | undefined;
     }>, "many">;
     rows: z.ZodArray<z.ZodRecord<z.ZodString, z.ZodAny>, "many">;
 }, "strip", z.ZodTypeAny, {
     title: string;
     columns: {
-        key: string;
         label: string;
+        key: string;
         align: "left" | "center" | "right";
     }[];
     rows: Record<string, any>[];
@@ -29,8 +29,8 @@ export declare const DataTableSchema: z.ZodObject<{
 }, {
     title: string;
     columns: {
-        key: string;
         label: string;
+        key: string;
         align?: "left" | "center" | "right" | undefined;
     }[];
     rows: Record<string, any>[];

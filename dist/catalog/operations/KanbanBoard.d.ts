@@ -12,33 +12,33 @@ export declare const KanbanBoardSchema: z.ZodObject<{
             priority: z.ZodEnum<["low", "medium", "high", "urgent"]>;
             assignee: z.ZodString;
         }, "strip", z.ZodTypeAny, {
-            title: string;
             id: string;
+            title: string;
             priority: "low" | "medium" | "high" | "urgent";
             assignee: string;
         }, {
-            title: string;
             id: string;
+            title: string;
             priority: "low" | "medium" | "high" | "urgent";
             assignee: string;
         }>, "many">;
     }, "strip", z.ZodTypeAny, {
-        color: "zinc" | "emerald" | "amber" | "red";
         id: string;
+        color: "zinc" | "emerald" | "amber" | "red";
         name: string;
         tasks: {
-            title: string;
             id: string;
+            title: string;
             priority: "low" | "medium" | "high" | "urgent";
             assignee: string;
         }[];
     }, {
-        color: "zinc" | "emerald" | "amber" | "red";
         id: string;
+        color: "zinc" | "emerald" | "amber" | "red";
         name: string;
         tasks: {
-            title: string;
             id: string;
+            title: string;
             priority: "low" | "medium" | "high" | "urgent";
             assignee: string;
         }[];
@@ -46,12 +46,12 @@ export declare const KanbanBoardSchema: z.ZodObject<{
 }, "strip", z.ZodTypeAny, {
     title: string;
     columns: {
-        color: "zinc" | "emerald" | "amber" | "red";
         id: string;
+        color: "zinc" | "emerald" | "amber" | "red";
         name: string;
         tasks: {
-            title: string;
             id: string;
+            title: string;
             priority: "low" | "medium" | "high" | "urgent";
             assignee: string;
         }[];
@@ -59,12 +59,12 @@ export declare const KanbanBoardSchema: z.ZodObject<{
 }, {
     title: string;
     columns: {
-        color: "zinc" | "emerald" | "amber" | "red";
         id: string;
+        color: "zinc" | "emerald" | "amber" | "red";
         name: string;
         tasks: {
-            title: string;
             id: string;
+            title: string;
             priority: "low" | "medium" | "high" | "urgent";
             assignee: string;
         }[];

@@ -218,6 +218,40 @@ All components strictly comply with the **No Violet / Purple Ban** design discip
 | `feature_grid` | Marketing | 3-card micro-border grid with Lucide icons | Giới thiệu tính năng, ưu điểm công nghệ |
 | `pricing_table` | Marketing | Multi-tier cards with highlight badge & checklists | Bảng giá SaaS, so sánh gói cước dịch vụ |
 | `cta_section` | Marketing | High-contrast black section with email input | Kêu gọi đăng ký, chốt đơn cuối trang |
+| `kanban_board` | Operations | Agile sprint task board with priority & assignees | Quản lý tiến độ dự án, kéo thả task |
+| `swarm_mission_control` | Agentic | Exception-based swarm observability & HITL actions | Giám sát bầy sub-agents, phân tích root cause, can thiệp khẩn cấp |
+
+---
+
+## 🤖 Agentic Era Architecture: The Interaction & Steering Layer
+
+In the era of autonomous multi-agent swarms (2026–2030), `design-os-generative-ui` operates as the **Real-Time Interaction & Steering Layer** between humans and AI agents.
+
+### 1. Action Contracts & Human-in-the-Loop (HITL)
+Components are no longer passive displays—they are actionable contracts dispatching structured events back to the agent runtime:
+
+```tsx
+import { listenDesignOSActions } from "design-os-generative-ui";
+
+// Listen to actions dispatched by interactive components (e.g. SwarmMissionControl)
+const unsubscribe = listenDesignOSActions((detail) => {
+  console.log(`Action triggered: ${detail.action.label} (${detail.action.id})`);
+  console.log(`Blast radius: ${detail.action.blastRadius}`); // 'low' | 'medium' | 'critical'
+  
+  if (detail.action.id === "approve_mutation") {
+    agentRuntime.resumeTask(detail.componentId);
+  }
+});
+```
+
+### 2. Strict Local-Only (Air-Gapped & $0 Token)
+Enforce zero data leakage by restricting inference entirely to Apple Silicon with automatic local deterministic fallback:
+
+```tsx
+const result = await composer.compose("Theo dõi tiến độ bưu kiện", {
+  localOnly: true, // Guarantees zero cloud calls (Air-Gapped / HIPAA compliant)
+});
+```
 
 ---
 
@@ -229,15 +263,21 @@ Measured on Apple Silicon Mac (`macOS`, `MLX 0.32.2`, `torch 2.14 MPS`):
 * **Cascade Router Speedup**: **3.41x faster** than pure cloud API
 * **Local Resolution Ratio**: **70.0%** of prompts resolved locally on Mac
 * **API Cost Reduction**: **70.0%**
-* **Test Suite Passing**: **15 / 15 Tests Passed (100%)**
+* **Test Suite Passing**: **100% Tests Passed** (Zod Validated, Purple Ban Compliant)
 
 ---
 
 ## 🧪 Running Tests & Playground
 
 ```bash
-# Run 15-case automated test suite (Zod, Composer, XSS/SQLi security, Schema boundary)
-npx tsx tests/run-all-tests.ts
+# Run comprehensive Agentic Era test suite (Local-Only, Action Contracts, Swarm)
+npx tsx tests/test-agentic-upgrade.ts
+
+# Run 10-Case Multi-Domain Benchmark
+npx tsx tests/demo-10-cases.ts
+
+# Run Hybrid Synthesis Test (System 2 Synthesized -> System 1 Routed)
+npx tsx tests/test-hybrid-kanban.ts
 
 # Launch Live Interactive Playground (Vite + React)
 npm run dev:playground
@@ -248,3 +288,4 @@ npm run dev:playground
 
 ## 📄 License
 Apache-2.0
+

@@ -8,11 +8,11 @@ export declare const TrendChartSchema: z.ZodObject<{
         label: z.ZodString;
         value: z.ZodNumber;
     }, "strip", z.ZodTypeAny, {
-        value: number;
         label: string;
+        value: number;
     }, {
-        value: number;
         label: string;
+        value: number;
     }>, "many">;
     color: z.ZodDefault<z.ZodEnum<["zinc", "emerald", "blue"]>>;
 }, "strip", z.ZodTypeAny, {
@@ -20,15 +20,15 @@ export declare const TrendChartSchema: z.ZodObject<{
     color: "zinc" | "emerald" | "blue";
     chartType: "line" | "bar";
     dataPoints: {
-        value: number;
         label: string;
+        value: number;
     }[];
     subtitle?: string | undefined;
 }, {
     title: string;
     dataPoints: {
-        value: number;
         label: string;
+        value: number;
     }[];
     color?: "zinc" | "emerald" | "blue" | undefined;
     subtitle?: string | undefined;

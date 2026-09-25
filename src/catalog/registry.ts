@@ -13,6 +13,12 @@ import {
   kanbanDefaultProps,
   kanbanSystem1Criteria,
 } from "./operations/KanbanBoard.js";
+import {
+  SwarmMissionControl,
+  SwarmMissionControlSchema,
+  swarmDefaultProps,
+  swarmSystem1Criteria,
+} from "./operations/SwarmMissionControl.js";
 
 export const defaultCatalog: CatalogRegistry = {
   metric_card: {
@@ -224,5 +230,18 @@ export const defaultCatalog: CatalogRegistry = {
     schema: KanbanBoardSchema,
     defaultProps: kanbanDefaultProps,
     component: KanbanBoard,
+  },
+
+  swarm_mission_control: {
+    id: "swarm_mission_control",
+    name: "Điều Khiển Swarm Agent (SwarmMissionControl)",
+    category: "agentic",
+    description: "Giám sát trạng thái bầy sub-agents, phát hiện ngoại lệ và can thiệp hành động khẩn cấp",
+    system1Criteria: swarmSystem1Criteria,
+    schema: SwarmMissionControlSchema,
+    defaultProps: swarmDefaultProps,
+    component: SwarmMissionControl,
+    actions: swarmDefaultProps.actions,
+    blastRadius: "critical",
   },
 };

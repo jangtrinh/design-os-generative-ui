@@ -1,15 +1,24 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { DesignOSComposer } from "../../src/engine/composer.js";
 import { DesignOSRenderer } from "../../src/renderer/DesignOSRenderer.js";
+import { listenDesignOSActions, type DesignOSActionDetail } from "../../src/engine/events.js";
 import type { ComposeResult, UISpec } from "../../src/engine/types.js";
-import { Sparkles, Zap, Shield, Cpu, Code2, Play, RefreshCw } from "lucide-react";
+import { Sparkles, Zap, Shield, Cpu, Code2, Play, RefreshCw, AlertTriangle, CheckCircle2, Lock } from "lucide-react";
 
 const composer = new DesignOSComposer();
 
 const PRESETS = [
   {
+    label: "🤖 Swarm Mission Control",
+    prompt: "Mở bảng điều khiển Swarm Mission Control giám sát bầy 4 sub-agents tự trị và xử lý ngoại lệ",
+  },
+  {
+    label: "📋 Bảng Kanban Sprint",
+    prompt: "Dựng bảng Kanban quản lý tiến độ sprint dự án với 3 cột Cần làm, Đang xử lý, Hoàn thành",
+  },
+  {
     label: "📊 Doanh Số & Đơn Hàng",
-    prompt: "Theo dõi doanh thu bán hàng online hôm nay, số lượng đơn hoàn tất và danh sách giao dịch mới nhất",
+    prompt: "Hiển thị các thẻ chỉ số doanh thu bán lẻ trực tuyến, biểu đồ doanh số và bảng lịch sử giao dịch khách hàng",
   },
   {
     label: "🚀 Landing Page Sản Phẩm",
@@ -36,16 +45,8 @@ const PRESETS = [
     prompt: "Thông báo bảo mật: Phát hiện nhiều lần đăng nhập bất thường từ dải IP lạ, yêu cầu đổi mật khẩu ngay",
   },
   {
-    label: "🧩 3 Trụ Cột Tính Năng",
-    prompt: "Trang giới thiệu 3 tính năng cốt lõi của hệ thống: Sub-50ms Edge Inference, Zod Type-Safety và Local Unified Memory",
-  },
-  {
     label: "📦 Tra Cứu Vận Đơn",
     prompt: "Khách hàng muốn tra cứu tình trạng vận chuyển mã bưu phẩm và thời gian giao hàng",
-  },
-  {
-    label: "🔄 Dữ Liệu Realtime Database",
-    prompt: "Dựng dashboard doanh số chi nhánh với dữ liệu thời gian thực được inject trực tiếp từ database PostgreSQL",
   },
 ];
 
@@ -55,14 +56,38 @@ export const App: React.FC = () => {
   const [result, setResult] = useState<ComposeResult | null>(null);
   const [showJson, setShowJson] = useState(false);
   const [forceCloud, setForceCloud] = useState(false);
+  const [localOnly, setLocalOnly] = useState(false);
+  const [clientRenderTimeMs, setClientRenderTimeMs] = useState<number | null>(null);
+  const [actionToast, setActionToast] = useState<DesignOSActionDetail | null>(null);
+
+  // Subscribe to DesignOS interactive action events
+  useEffect(() => {
+    const unsubscribe = listenDesignOSActions((detail) => {
+      setActionToast(detail);
+      const timer = setTimeout(() => setActionToast(null), 5000);
+      return () => clearTimeout(timer);
+    });
+    return unsubscribe;
+  }, []);
 
   const handleCompose = async (customPrompt?: string) => {
     const text = customPrompt || prompt;
     if (!text.trim()) return;
 
     setLoading(true);
+    const startReqTime = performance.now();
     try {
-      const res = await composer.compose(text, { forceCloud });
+      const res = await composer.compose(text, {
+        forceCloud: localOnly ? false : forceCloud,
+        localOnly,
+      });
+
+      // Measure client render time
+      requestAnimationFrame(() => {
+        const renderDoneTime = performance.now();
+        setClientRenderTimeMs(Math.round(renderDoneTime - startReqTime));
+      });
+
       setResult(res);
     } catch (err) {
       console.error("Compose error:", err);
@@ -87,22 +112,38 @@ export const App: React.FC = () => {
             <div className="flex items-center gap-2">
               <span className="font-bold text-sm text-zinc-50">Design OS Generative UI</span>
               <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-zinc-800 text-zinc-300 border border-zinc-700">
-                System 1 Cascade
+                Agentic Interaction Engine
               </span>
             </div>
-            <p className="text-[11px] text-zinc-400">Sub-50ms Real-Time Adaptive UI Playground</p>
+            <p className="text-[11px] text-zinc-400">Sub-50ms Real-Time Adaptive UI & Swarm Mission Control</p>
           </div>
         </div>
 
-        <div className="flex items-center gap-3">
-          <label className="flex items-center gap-2 text-xs text-zinc-400 cursor-pointer select-none">
+        <div className="flex items-center gap-4">
+          {/* Local-Only Enforced Mode Toggle */}
+          <label className="flex items-center gap-1.5 text-xs text-zinc-300 cursor-pointer select-none bg-zinc-900 border border-zinc-700 px-2.5 py-1.5 rounded-lg hover:border-zinc-600 transition-colors">
+            <input
+              type="checkbox"
+              checked={localOnly}
+              onChange={(e) => {
+                setLocalOnly(e.target.checked);
+                if (e.target.checked) setForceCloud(false);
+              }}
+              className="rounded border-zinc-700 bg-zinc-800 text-emerald-500 focus:ring-0"
+            />
+            <Lock className="w-3 h-3 text-emerald-400" />
+            <span className="font-semibold text-emerald-400">Local-Only (Air-Gapped)</span>
+          </label>
+
+          <label className={`flex items-center gap-2 text-xs text-zinc-400 cursor-pointer select-none ${localOnly ? "opacity-40 pointer-events-none" : ""}`}>
             <input
               type="checkbox"
               checked={forceCloud}
+              disabled={localOnly}
               onChange={(e) => setForceCloud(e.target.checked)}
               className="rounded border-zinc-700 bg-zinc-800 text-zinc-100 focus:ring-0"
             />
-            <span>Bắt buộc dùng JEV Cloud</span>
+            <span>Bắt buộc JEV Cloud</span>
           </label>
 
           <button
@@ -131,7 +172,7 @@ export const App: React.FC = () => {
                 value={prompt}
                 onChange={(e) => setPrompt(e.target.value)}
                 onKeyDown={(e) => e.key === "Enter" && handleCompose()}
-                placeholder="Nhập mô tả giao diện bạn muốn dựng (ví dụ: Dựng bảng giá 3 gói dịch vụ)..."
+                placeholder="Nhập mô tả giao diện bạn muốn dựng (ví dụ: Bảng điều khiển Swarm Mission Control)..."
                 className="w-full px-4 py-2.5 rounded-xl border border-zinc-800 bg-zinc-900 text-sm text-zinc-100 placeholder-zinc-500 focus:outline-none focus:ring-1 focus:ring-zinc-500 shadow-inner"
               />
             </div>
@@ -152,7 +193,7 @@ export const App: React.FC = () => {
 
           {/* Quick Presets */}
           <div className="flex flex-wrap items-center gap-2 pt-1">
-            <span className="text-xs text-zinc-500 font-medium">Gợi ý nhanh:</span>
+            <span className="text-xs text-zinc-500 font-medium">Kịch bản Agentic:</span>
             {PRESETS.map((p, idx) => (
               <button
                 key={idx}
@@ -189,31 +230,45 @@ export const App: React.FC = () => {
                 >
                   <Zap className="w-3 h-3" />
                   {result.telemetry.engine === "laya-mlx"
-                    ? "Laya-MLX (Local Apple Silicon)"
+                    ? "Laya-MLX (Apple Silicon UMA)"
                     : result.telemetry.engine === "jev-cloud"
                     ? "TypeSafe JEV (Cloud API)"
                     : "Deterministic Calibrated Engine"}
                 </span>
-              </div>
 
-              {/* Latency */}
-              <div className="flex items-center gap-1.5">
-                <span className="text-zinc-500">Độ trễ:</span>
-                <span className="font-mono font-bold text-zinc-200">
-                  {result.telemetry.latencyMs} ms
-                </span>
-                {result.telemetry.latencyMs < 50 && (
-                  <span className="text-[10px] text-emerald-400 font-semibold bg-emerald-950/40 px-1.5 py-0.2 rounded">
-                    ⚡ Sub-50ms
+                {result.telemetry.localEnforced && (
+                  <span className="text-[10px] font-semibold bg-emerald-950/80 text-emerald-300 border border-emerald-800 px-1.5 py-0.5 rounded">
+                    🔒 Air-Gapped Local
                   </span>
                 )}
               </div>
 
-              {/* Confidence */}
+              {/* Latency: Decision + First-Paint E2E */}
+              <div className="flex items-center gap-2 font-mono">
+                <span className="text-zinc-500">Độ trễ Quyết định:</span>
+                <span className="font-bold text-zinc-200">
+                  {result.telemetry.latencyMs} ms
+                </span>
+                {clientRenderTimeMs !== null && (
+                  <span className="text-zinc-400">
+                    • E2E First-Paint: <strong className="text-emerald-400">{clientRenderTimeMs} ms</strong>
+                  </span>
+                )}
+              </div>
+
+              {/* Blast Radius / Rủi ro */}
               <div className="flex items-center gap-1.5">
-                <span className="text-zinc-500">Độ tin cậy:</span>
-                <span className="font-mono font-bold text-zinc-200">
-                  {Math.round(result.telemetry.confidence * 100)}%
+                <span className="text-zinc-500">Blast Radius:</span>
+                <span
+                  className={`px-2 py-0.5 rounded text-[10px] font-semibold uppercase ${
+                    result.telemetry.blastRadius === "critical"
+                      ? "bg-red-950 text-red-300 border border-red-800"
+                      : result.telemetry.blastRadius === "medium"
+                      ? "bg-amber-950 text-amber-300 border border-amber-800"
+                      : "bg-zinc-800 text-zinc-300"
+                  }`}
+                >
+                  {result.telemetry.blastRadius ?? "low"}
                 </span>
               </div>
             </div>
@@ -262,6 +317,28 @@ export const App: React.FC = () => {
           </div>
         )}
       </main>
+
+      {/* Interactive Action Toast Notification */}
+      {actionToast && (
+        <aside aria-label="Thông báo hành động hệ thống" className="fixed bottom-6 right-6 z-50 max-w-md rounded-xl border border-emerald-500/40 bg-zinc-900 p-4 text-white shadow-2xl space-y-1.5 animate-in fade-in slide-in-from-bottom-4 duration-200">
+          <div className="flex items-center justify-between gap-2">
+            <div className="flex items-center gap-2 text-emerald-400 text-xs font-bold">
+              <CheckCircle2 className="w-4 h-4" />
+              <span>ACTION DISPATCHED ĐẾN AGENT RUNTIME</span>
+            </div>
+            <span className="text-[10px] font-mono text-zinc-400">
+              {new Date(actionToast.timestamp).toLocaleTimeString()}
+            </span>
+          </div>
+          <p className="text-sm font-medium text-zinc-100">
+            Hành động: <span className="font-bold underline">{actionToast.action.label}</span> ({actionToast.action.id})
+          </p>
+          <div className="flex items-center gap-3 text-xs text-zinc-400 font-mono pt-1">
+            <span>Rủi ro: <strong className="text-amber-400 uppercase">{actionToast.action.blastRadius ?? "low"}</strong></span>
+            <span>Nguồn: <strong>{actionToast.componentId ?? "ui"}</strong></span>
+          </div>
+        </aside>
+      )}
     </div>
   );
 };
