@@ -39,7 +39,7 @@ export class JevAdapter {
     return Boolean(this.apiKey);
   }
 
-  async predict(request: JevSystemOneRequest, timeoutMs = 800): Promise<JevSystemOneResponse | null> {
+  async predict(request: JevSystemOneRequest, timeoutMs = 3000): Promise<JevSystemOneResponse | null> {
     if (!this.apiKey) return null;
 
     const controller = new AbortController();

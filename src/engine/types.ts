@@ -36,4 +36,6 @@ export interface ComposeOptions {
   cascadeThreshold?: number; // Default 0.30
   forceCloud?: boolean;
   localEndpoint?: string; // Default http://127.0.0.1:8000/predict
+  localTimeoutMs?: number; // Default 500ms
+  cloudTimeoutMs?: number; // Default 3000ms
 }

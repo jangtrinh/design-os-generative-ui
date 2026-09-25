@@ -65,7 +65,7 @@ export class DesignOSComposer {
                 const layaResp = await this.laya.predict({
                     state: `User UI Request: "${prompt}"`,
                     questions,
-                });
+                }, options.localTimeoutMs ?? 500);
                 if (layaResp?.answers?.primary_widget) {
                     const layaConf = layaResp.answers.primary_widget.confidence ?? 0.5;
                     if (layaConf >= threshold) {
@@ -87,7 +87,7 @@ export class DesignOSComposer {
                 const jevResp = await this.jev.predict({
                     state: `User UI Request: "${prompt}"`,
                     questions,
-                });
+                }, options.cloudTimeoutMs ?? 3000);
                 if (jevResp?.answers?.primary_widget) {
                     engineUsed = "jev-cloud";
                     confidence = jevResp.answers.primary_widget.confidence ?? 0.9;
@@ -185,6 +185,44 @@ export class DesignOSComposer {
                 components,
             };
         }
+        // Check if primaryChoice is a registered component outside the standard default marketing/dashboard triplets
+        const isStandardTriplet = [
+            "metric_card",
+            "trend_chart",
+            "data_table",
+            "hero_section",
+            "feature_grid",
+            "pricing_table",
+            "cta_section",
+            "alert_banner",
+        ].includes(primaryChoice);
+        if (!isStandardTriplet && this.catalog[primaryChoice]) {
+            const customMeta = this.catalog[primaryChoice];
+            components.push({
+                id: `custom-${primaryChoice}`,
+                type: customMeta.id,
+                props: customMeta.defaultProps,
+            });
+            // If user also requested dashboard/analytics context, add supporting metrics
+            if (isDashboard && this.catalog.metric_card) {
+                components.push({
+                    id: "metric-context",
+                    type: "metric_card",
+                    props: {
+                        title: "Trạng Thái Theo Dõi",
+                        value: "100%",
+                        change: "Ổn định",
+                        trend: "up",
+                        period: "thời gian thực",
+                    },
+                });
+            }
+            return {
+                layout: layoutChoice === "dashboard" ? "grid-2" : layoutChoice,
+                title: customMeta.name,
+                components,
+            };
+        }
         if (isDashboard || primaryChoice === "metric_card" || primaryChoice === "trend_chart") {
             // Compose Dashboard Layout
             if (this.catalog.metric_card) {
@@ -255,24 +293,46 @@ export class DesignOSComposer {
     evaluateDeterministic(prompt) {
         const p = prompt.toLowerCase();
         let primary = "metric_card";
-        if (p.includes("landing") || p.includes("trang chủ") || p.includes("hero"))
-            primary = "hero_section";
-        else if (p.includes("giá") || p.includes("pricing") || p.includes("gói"))
-            primary = "pricing_table";
-        else if (p.includes("tính năng") || p.includes("feature"))
-            primary = "feature_grid";
-        else if (p.includes("bảng") || p.includes("danh sách") || p.includes("table"))
-            primary = "data_table";
-        else if (p.includes("biểu đồ") || p.includes("chart") || p.includes("xu hướng"))
-            primary = "trend_chart";
-        else if (p.includes("cảnh báo") || p.includes("lỗi") || p.includes("alert"))
-            primary = "alert_banner";
+        let bestScore = 0;
+        // 1. Dynamic Catalog matching for custom and default components
+        for (const [id, meta] of Object.entries(this.catalog)) {
+            const criteriaStr = `${meta.name} ${meta.system1Criteria || ""} ${meta.description || ""}`.toLowerCase();
+            const words = criteriaStr.split(/[,;\s]+/);
+            let matchCount = 0;
+            for (const w of words) {
+                if (w.length >= 3 && p.includes(w)) {
+                    matchCount++;
+                }
+            }
+            if (matchCount > bestScore) {
+                bestScore = matchCount;
+                primary = id;
+            }
+        }
+        // 2. Standard heuristic fallbacks if no specific keyword match
+        if (bestScore === 0) {
+            if (p.includes("landing") || p.includes("trang chủ") || p.includes("hero"))
+                primary = "hero_section";
+            else if (p.includes("giá") || p.includes("pricing") || p.includes("gói"))
+                primary = "pricing_table";
+            else if (p.includes("tính năng") || p.includes("feature"))
+                primary = "feature_grid";
+            else if (p.includes("bảng") || p.includes("danh sách") || p.includes("table"))
+                primary = "data_table";
+            else if (p.includes("biểu đồ") || p.includes("chart") || p.includes("xu hướng"))
+                primary = "trend_chart";
+            else if (p.includes("cảnh báo") || p.includes("lỗi") || p.includes("alert"))
+                primary = "alert_banner";
+        }
+        const isDashboard = p.includes("dashboard") || p.includes("doanh thu") || p.includes("thống kê");
+        const isMarketing = p.includes("landing") || p.includes("giá") || p.includes("sản phẩm");
+        const hasAlert = p.includes("lỗi") || p.includes("cảnh báo") || p.includes("alert");
         return {
-            primary_widget: { choice: primary, confidence: 0.8 },
-            layout_topology: { choice: p.includes("dashboard") ? "dashboard" : "stack", confidence: 0.85 },
-            is_dashboard_intent: { truth_probability: p.includes("dashboard") || p.includes("doanh thu") ? 0.9 : 0.1 },
-            is_marketing_intent: { truth_probability: p.includes("landing") || p.includes("giá") ? 0.9 : 0.1 },
-            has_warning_or_alert: { truth_probability: p.includes("lỗi") || p.includes("cảnh báo") ? 0.95 : 0.05 },
+            primary_widget: { choice: primary, confidence: bestScore > 0 ? 0.9 : 0.8 },
+            layout_topology: { choice: isDashboard ? "dashboard" : isMarketing ? "hero-first" : "stack", confidence: 0.85 },
+            is_dashboard_intent: { truth_probability: isDashboard ? 0.9 : 0.1 },
+            is_marketing_intent: { truth_probability: isMarketing ? 0.9 : 0.1 },
+            has_warning_or_alert: { truth_probability: hasAlert ? 0.95 : 0.05 },
         };
     }
 }

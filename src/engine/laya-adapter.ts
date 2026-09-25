@@ -30,7 +30,7 @@ export class LayaAdapter {
     this.endpoint = endpoint;
   }
 
-  async predict(request: LayaPredictRequest, timeoutMs = 80): Promise<LayaPredictResponse | null> {
+  async predict(request: LayaPredictRequest, timeoutMs = 500): Promise<LayaPredictResponse | null> {
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(), timeoutMs);
 

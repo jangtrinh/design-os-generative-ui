@@ -10,7 +10,7 @@ export class JevAdapter {
     isAvailable() {
         return Boolean(this.apiKey);
     }
-    async predict(request, timeoutMs = 800) {
+    async predict(request, timeoutMs = 3000) {
         if (!this.apiKey)
             return null;
         const controller = new AbortController();

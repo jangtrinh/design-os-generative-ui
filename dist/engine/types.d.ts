@@ -67,5 +67,7 @@ export interface ComposeOptions {
     cascadeThreshold?: number;
     forceCloud?: boolean;
     localEndpoint?: string;
+    localTimeoutMs?: number;
+    cloudTimeoutMs?: number;
 }
 //# sourceMappingURL=types.d.ts.map

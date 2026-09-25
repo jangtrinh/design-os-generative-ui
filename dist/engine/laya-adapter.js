@@ -3,7 +3,7 @@ export class LayaAdapter {
     constructor(endpoint = "http://127.0.0.1:8000/predict") {
         this.endpoint = endpoint;
     }
-    async predict(request, timeoutMs = 80) {
+    async predict(request, timeoutMs = 500) {
         const controller = new AbortController();
         const timer = setTimeout(() => controller.abort(), timeoutMs);
         try {
