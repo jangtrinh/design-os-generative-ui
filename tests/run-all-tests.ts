@@ -115,6 +115,21 @@ async function runSuite() {
     assert(!result.success, "Zod must reject invalid prop types");
   });
 
+  console.log("\n--- 5. Security & Isolation Boundary Tests ---");
+
+  await test("Security: localOnly constructor option is strictly enforced", async () => {
+    const localComposer = new DesignOSComposer({ localOnly: true });
+    const res = await localComposer.compose("Bảng điều khiển kinh doanh");
+    assert(res.telemetry.localEnforced === true, "localEnforced telemetry must be true");
+    assert(res.telemetry.engine !== "jev-cloud", "Must not call jev-cloud when localOnly is set");
+  });
+
+  await test("Security: Layout is strictly bounded to valid LayoutType enum", async () => {
+    const res = await composer.compose("một widget kỳ lạ chưa từng thấy");
+    const validLayouts = ["dashboard", "hero-first", "grid-2", "stack", "single"];
+    assert(validLayouts.includes(res.spec.layout), `Layout '${res.spec.layout}' must be a valid LayoutType`);
+  });
+
   console.log("\n=================================================");
   console.log(`🏁 TEST SUITE COMPLETE: ${report.passed}/${report.passed + report.failed} PASSED`);
   if (report.failed > 0) {

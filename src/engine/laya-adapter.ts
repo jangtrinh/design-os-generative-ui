@@ -41,10 +41,14 @@ export class LayaAdapter {
         body: JSON.stringify(request),
         signal: controller.signal,
       });
-      clearTimeout(timer);
 
-      if (!resp.ok) return null;
-      return (await resp.json()) as LayaPredictResponse;
+      if (!resp.ok) {
+        clearTimeout(timer);
+        return null;
+      }
+      const data = (await resp.json()) as LayaPredictResponse;
+      clearTimeout(timer);
+      return data;
     } catch {
       clearTimeout(timer);
       return null;

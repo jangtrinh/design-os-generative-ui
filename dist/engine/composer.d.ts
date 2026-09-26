@@ -5,6 +5,8 @@ export declare class DesignOSComposer {
     private laya;
     private jev;
     private cascadeThreshold;
+    private localOnly;
+    private options;
     constructor(options?: ComposeOptions, catalog?: CatalogRegistry);
     /**
      * Evaluates user prompt and rapidly composes a validated UI Spec via System 1 Cascade Router.

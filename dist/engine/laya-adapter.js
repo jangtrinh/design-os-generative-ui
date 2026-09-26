@@ -13,10 +13,13 @@ export class LayaAdapter {
                 body: JSON.stringify(request),
                 signal: controller.signal,
             });
-            clearTimeout(timer);
-            if (!resp.ok)
+            if (!resp.ok) {
+                clearTimeout(timer);
                 return null;
-            return (await resp.json());
+            }
+            const data = (await resp.json());
+            clearTimeout(timer);
+            return data;
         }
         catch {
             clearTimeout(timer);

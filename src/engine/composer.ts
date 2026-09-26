@@ -16,10 +16,14 @@ export class DesignOSComposer {
   private laya: LayaAdapter;
   private jev: JevAdapter;
   private cascadeThreshold: number;
+  private localOnly: boolean;
+  private options: ComposeOptions;
 
   constructor(options: ComposeOptions = {}, catalog: CatalogRegistry = defaultCatalog) {
+    this.options = options;
     this.catalog = catalog;
     this.cascadeThreshold = options.cascadeThreshold ?? 0.30;
+    this.localOnly = options.localOnly ?? false;
     this.laya = new LayaAdapter(options.localEndpoint ?? "http://127.0.0.1:8000/predict");
     this.jev = new JevAdapter();
   }
@@ -31,7 +35,7 @@ export class DesignOSComposer {
     const startTime = performance.now();
     const threshold = options.cascadeThreshold ?? this.cascadeThreshold;
     const forceCloud = options.forceCloud ?? false;
-    const localOnly = options.localOnly ?? false;
+    const localOnly = options.localOnly ?? this.localOnly;
 
     // 1. Build Criteria mapping from Catalog for System 1
     const componentCriteria: Record<string, string> = {};
@@ -115,10 +119,13 @@ export class DesignOSComposer {
         );
 
         if (jevResp?.answers?.primary_widget) {
-          engineUsed = "jev-cloud";
-          confidence = jevResp.answers.primary_widget.confidence ?? 0.9;
-          escalated = true;
-          answers = jevResp.answers;
+          const cloudConf = jevResp.answers.primary_widget.confidence ?? 0.9;
+          if (cloudConf >= threshold) {
+            engineUsed = "jev-cloud";
+            confidence = cloudConf;
+            escalated = true;
+            answers = jevResp.answers;
+          }
         }
       } catch {
         // Fallback to deterministic
@@ -415,8 +422,11 @@ export class DesignOSComposer {
       props: primaryMeta.defaultProps,
     });
 
+    const validLayouts: LayoutType[] = ["dashboard", "hero-first", "grid-2", "stack", "single"];
+    const sanitizedLayout: LayoutType = validLayouts.includes(layoutChoice) ? layoutChoice : "stack";
+
     return {
-      layout: layoutChoice,
+      layout: sanitizedLayout,
       components,
     };
   }

@@ -58,10 +58,13 @@ export class JevAdapter {
         }),
         signal: controller.signal,
       });
+      if (!resp.ok) {
+        clearTimeout(timer);
+        return null;
+      }
+      const data = (await resp.json()) as JevSystemOneResponse;
       clearTimeout(timer);
-
-      if (!resp.ok) return null;
-      return (await resp.json()) as JevSystemOneResponse;
+      return data;
     } catch {
       clearTimeout(timer);
       return null;
