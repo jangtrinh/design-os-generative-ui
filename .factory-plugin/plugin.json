@@ -1,0 +1,21 @@
+{
+  "name": "design-os-generative-ui",
+  "description": "Stream-first interactive visual runtime for AI agents — 60fps `morphdom` DOM reconciliation, streaming HTML sanitizer, and WebGL/Canvas widget bridge.",
+  "version": "1.0.0",
+  "author": {
+    "name": "Jang Trinh",
+    "url": "https://github.com/jangtrinh"
+  },
+  "homepage": "https://jangtrinh.github.io/design-os-generative-ui/",
+  "repository": "https://github.com/jangtrinh/design-os-generative-ui",
+  "license": "MIT",
+  "keywords": [
+    "generative-ui",
+    "morphdom",
+    "streaming-html",
+    "claude-artifacts",
+    "webgl",
+    "ai-agents",
+    "design-os"
+  ]
+}

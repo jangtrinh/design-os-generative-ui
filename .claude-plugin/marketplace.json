@@ -1,0 +1,15 @@
+{
+  "name": "design-os-generative-ui",
+  "metadata": {
+    "description": "Stream-first interactive visual runtime for AI agents — 60fps `morphdom` DOM reconciliation, streaming HTML sanitizer, and WebGL/Canvas widget bridge."
+  },
+  "owner": {
+    "name": "Jang Trinh"
+  },
+  "plugins": [
+    {
+      "name": "design-os-generative-ui",
+      "source": "./"
+    }
+  ]
+}

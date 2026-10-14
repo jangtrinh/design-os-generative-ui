@@ -1,291 +1,327 @@
-# design-os-generative-ui
+# DESIGN:OS Generative UI (`design-os-generative-ui`)
 
-[![License](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](LICENSE)
-[![TypeScript](https://img.shields.io/badge/TypeScript-5.7+-blue.svg)](https://www.typescriptlang.org/)
-[![Tests](https://img.shields.io/badge/Tests-15%2F15%20Passed-emerald.svg)](tests/run-all-tests.ts)
-[![Latency](https://img.shields.io/badge/Latency-6.53ms%20P50-brightgreen.svg)](#-empirical-benchmarks-on-apple-silicon)
-[![Purple Ban](https://img.shields.io/badge/Design-Stark%20Zinc%20(Purple%20Ban)-zinc.svg)](#-component-catalog)
+**Stream-first interactive visual runtime for AI agents — 60fps `morphdom` DOM reconciliation, streaming HTML sanitizer, and WebGL/Canvas widget bridge.**
 
-> **Sub-50ms Real-Time Generative UI Engine**  
-> Powered by **Laya-MLX (Apple Silicon Local Edge)** & **TypeSafe JEV (Cloud API)** with the **Catalog Pattern (Zod)**.
-
----
+Render live-streaming interactive calculators, 3D scenes, charts, and explorable explanations inside Claude Artifacts, ChatGPT Canvas, Gemini, and custom agent webviews with zero flicker.
 
 <p align="center">
-  <img src="assets/design-os-speed-demo.gif" alt="Design OS Generative UI Real-Time Speed Demo" width="100%" style="border-radius: 12px; border: 1px solid #27272a;" />
+  <img src="docs/images/cover.png" alt="DESIGN:OS Generative UI — 2:1 Axonometric Technical Architecture" width="840">
 </p>
 
 <p align="center">
-  <em>⚡ Live demo recorded at 60fps in the interactive playground: instant sub-50ms layout snapping without LLM token streaming delay.</em>
+  <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-202020?style=flat-square&labelColor=202020&color=444444" alt="MIT License"></a>
+  <img src="https://img.shields.io/badge/Claude_Code_%C2%B7_Codex_%C2%B7_Gemini_%C2%B7_Antigravity-skill-202020?style=flat-square&labelColor=202020&color=444444" alt="Compatible agents">
+  <a href="commands/doctor.md"><img src="https://img.shields.io/badge/diagnostics-%2Fdoctor-202020?style=flat-square&labelColor=202020&color=444444" alt="Doctor command"></a>
+  <a href="https://jangtrinh.github.io/design-os-generative-ui/"><img src="https://img.shields.io/badge/live_docs-GitHub_Pages-202020?style=flat-square&labelColor=202020&color=444444" alt="Live GitHub Pages"></a>
+  <a href="https://buymeacoffee.com/jangtrinh"><img src="https://img.shields.io/badge/Buy_Me_a_Coffee-FFDD00?style=flat-square&logo=buy-me-a-coffee&logoColor=black" alt="Buy Me a Coffee"></a>
+</p>
+
+<p align="center">
+  <a href="#quickstart">Quickstart</a> · <a href="#what-it-makes">What it makes</a> · <a href="#installation">Install</a> · <a href="#how-it-works">How it works</a> · <a href="#commands--diagnostics">Commands</a> · <a href="#quality-bar--limitations">Limits</a>
 </p>
 
 ---
 
-## ⚡ The Shift: Why System 1 Generative UI?
+## Why this exists
 
-Traditional Generative UI tools (v0, Claude Canvas, ChatGPT Canvas) ask a large language model to stream raw JSX or HTML tokens. In production applications, this introduces severe bottlenecks:
+Naively setting `innerHTML` on an LLM token stream causes severe layout thrashing, destroys active `<canvas>` / `<input>` state on every chunk, and opens XSS vectors. **`design-os-generative-ui`** provides a stream-healer, sanitizer, and 60fps `morphdom` reconciler (`createStreamRenderer` + `DesignOSBridge`) purpose-built for AI agent artifacts.
 
-| Metric | Traditional LLM GenUI (v0 / Claude) | Design OS Generative UI (System 1) |
-|---|---|---|
-| **Latency** | **3,000 – 8,000 ms** (Streaming lag) | **6.5 ms – 25 ms** (Instant forward pass) |
-| **Correctness** | Fragile: Hallucinates tags, breaks CSS, missing props | **100% Type-Safe**: Validated against Zod schemas |
-| **Security** | High XSS / Prompt Injection attack surface | **Zero Injection**: Outputs purely structural JSON Specs |
-| **Cost** | $0.01 – $0.05 per prompt (Thousands of tokens) | **$0.00** (Local Apple Silicon MLX Unified Memory) |
-| **Aesthetics** | Random styles, clashing design tokens | **Design System Bound**: Stark Zinc, strictly enforced |
+| Dimension | Generic AI / Manual Workflow | DESIGN:OS Generative UI (`DESIGN:OS`) |
+| :--- | :--- | :--- |
+| **Streaming DOM Updates** | `element.innerHTML = chunk` flashes white and resets inputs on every token | 60fps `morphdom` diffing that preserves `<canvas>`, WebGL, and focused input state |
+| **Incomplete Tag Healing** | Broken layout while `<svg>` or `<table>` tags are mid-stream | Deterministic tag auto-healing and script execution deferral until stream completion |
+| **Security & XSS** | Unsanitized LLM output executing inline `onerror=` payloads | Strict streaming sanitizer stripping dangerous attributes and untrusted scripts |
+| **Host Communication** | Isolated iframes that cannot send user actions back to the agent | Bidirectional `DesignOSBridge` (`sendPrompt`, state sync, theme adaptation) |
+| **Privacy & Telemetry** | Opaque cloud telemetry or unverified third-party APIs | **Zero telemetry** — 100% local execution ([`PRIVACY.md`](PRIVACY.md) audited) |
 
 ---
 
-## 🏛️ Architecture: The Local-First Cascade Router
+## Quickstart
 
-```mermaid
-flowchart TD
-    UserPrompt["User Prompt (e.g. 'Xem dashboard doanh số tuần này và cảnh báo lỗi')"] --> Composer["DesignOSComposer (Engine)"]
-    
-    subgraph System1Cascade ["Dual-Tier Decision Cascade"]
-        Composer --> LocalLaya["Laya-MLX Local Edge (~7ms, $0)"]
-        LocalLaya --> CheckConf{"Confidence >= 0.30?"}
-        CheckConf -- "Yes (70% traffic)" --> LocalSpec["Accept Local Layout Decision"]
-        CheckConf -- "No / Complex" --> Escalation["Escalate to TypeSafe JEV Cloud"]
-    end
-    
-    LocalSpec --> SpecAssembler["Type-Safe Spec Assembler"]
-    Escalation --> SpecAssembler
-    
-    subgraph CatalogRegistry ["Component Catalog (Zod Guarded)"]
-        SpecAssembler <--> Registry["Zod Component Catalog"]
-        Registry --> DashboardGroup["Dashboard (MetricCard, DataTable, TrendChart, Alert)"]
-        Registry --> MarketingGroup["Marketing (Hero, FeatureGrid, Pricing, CTA)"]
-    end
-    
-    SpecAssembler --> UISpec["Validated UI Spec (JSON)"]
-    UISpec --> Renderer["<DesignOSRenderer spec={spec} />"]
-    Renderer --> FinalDOM["Instant Adaptive UI (< 30ms total)"]
+### 1. Install the plugin or CLI
+
+**In Claude Code:**
+
+```text
+/plugin marketplace add jangtrinh/design-os-generative-ui
+/plugin install design-os-generative-ui@design-os-generative-ui
 ```
 
----
-
-## 📦 Installation in Any Project
-
-### Option A: Install from GitHub
-```bash
-# Using pnpm (recommended)
-pnpm add github:jangtrinh/design-os-generative-ui
-
-# Using npm
-npm install github:jangtrinh/design-os-generative-ui
-```
-
-### Option B: Local Path Dependency (Workspace)
-```bash
-pnpm add /Users/jangtrinh/Products/design-os-generative-ui
-```
-
----
-
-## 🚀 Quickstart in Next.js / React
-
-```tsx
-import React, { useState } from "react";
-import { DesignOSComposer, DesignOSRenderer, defaultCatalog } from "design-os-generative-ui";
-
-const composer = new DesignOSComposer({
-  cascadeThreshold: 0.30, // 70% resolved on Mac in ~6.5ms at $0 cost
-  localEndpoint: "http://127.0.0.1:8000/predict",
-});
-
-export function MyAdaptiveScreen() {
-  const [spec, setSpec] = useState(null);
-  const [loading, setLoading] = useState(false);
-
-  const handlePrompt = async (prompt: string) => {
-    setLoading(true);
-    try {
-      // Returns validated UISpec in ~10ms
-      const { spec, telemetry } = await composer.compose(prompt);
-      console.log(`Rendered in ${telemetry.latencyMs}ms via ${telemetry.engine}`);
-      setSpec(spec);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  return (
-    <div className="p-6 max-w-5xl mx-auto space-y-6">
-      <input
-        placeholder="Yêu cầu giao diện (VD: Dựng dashboard theo dõi doanh số)..."
-        onKeyDown={(e) => e.key === "Enter" && handlePrompt(e.currentTarget.value)}
-        className="w-full px-4 py-2.5 rounded-xl border border-zinc-800 bg-zinc-900 text-white"
-      />
-
-      {spec && <DesignOSRenderer spec={spec} catalog={defaultCatalog} />}
-    </div>
-  );
-}
-```
-
----
-
-## 🧩 Extending with Custom Components (Zod + System 1)
-
-You can register project-specific components into the Catalog. The System 1 engine uses the `system1Criteria` string to determine when to trigger the component:
-
-```tsx
-import { z } from "zod";
-import { defaultCatalog, DesignOSComposer, type CatalogRegistry } from "design-os-generative-ui";
-
-// 1. Define Zod schema
-const UserKpiSchema = z.object({
-  activeUsers: z.number(),
-  retentionRate: z.string(),
-  topRegion: z.string(),
-});
-
-// 2. Build component
-function UserKpiWidget({ activeUsers, retentionRate, topRegion }: z.infer<typeof UserKpiSchema>) {
-  return (
-    <div className="rounded-xl border border-zinc-800 bg-zinc-900 p-5">
-      <h4 className="text-xs font-medium text-zinc-400">Tăng Trưởng Người Dùng</h4>
-      <div className="text-2xl font-bold mt-1 text-white">{activeUsers.toLocaleString()}</div>
-      <div className="text-xs text-emerald-400 mt-2">Retention: {retentionRate} • {topRegion}</div>
-    </div>
-  );
-}
-
-// 3. Register in Catalog
-export const myCustomCatalog: CatalogRegistry = {
-  ...defaultCatalog,
-  user_kpi: {
-    id: "user_kpi",
-    name: "User Growth Widget",
-    category: "dashboard",
-    description: "Hiển thị người dùng hoạt động và tỷ lệ giữ chân",
-    system1Criteria: "Thống kê người dùng hoạt động, retention rate, nhân khẩu học hoặc tăng trưởng user",
-    schema: UserKpiSchema,
-    defaultProps: { activeUsers: 8420, retentionRate: "68.4%", topRegion: "Việt Nam" },
-    component: UserKpiWidget,
-  }
-};
-
-// 4. Use custom composer
-const customComposer = new DesignOSComposer({}, myCustomCatalog);
-```
-
----
-
-## 🔄 Dynamic Runtime Data Hydration (Astra Pattern)
-
-> **Important**: Never ask an AI model to guess real financial figures or live database rows. Let System 1 select the structural components, and hydrate real data on the frontend:
-
-```tsx
-export function LiveDataDashboard({ spec }: { spec: UISpec }) {
-  const { data: liveKpi } = useSWR("/api/kpi/realtime");
-
-  // Hydrate spec with live database figures
-  const hydratedSpec = {
-    ...spec,
-    components: spec.components.map((c) => {
-      if (c.type === "metric_card" && liveKpi) {
-        return {
-          ...c,
-          props: {
-            ...c.props,
-            value: liveKpi.revenueFormatted,
-            change: liveKpi.growthRate,
-          },
-        };
-      }
-      return c;
-    }),
-  };
-
-  return <DesignOSRenderer spec={hydratedSpec} />;
-}
-```
-
----
-
-## 🎨 Component Catalog & Design Rules
-
-All components strictly comply with the **No Violet / Purple Ban** design discipline: stark zinc palette (`#18181b`, `#f4f4f5`), crisp micro-borders, glassmorphism, and responsive grid layouts.
-
-| Component ID | Category | Description | Primary Use Case |
-|---|:---:|---|---|
-| `metric_card` | Dashboard | KPI card with value, trend icon & percentage | Doanh thu, đơn hàng, user, tỷ lệ chuyển đổi |
-| `trend_chart` | Dashboard | Pure SVG line/bar chart with period markers | Xu hướng 7 ngày, biểu đồ tăng trưởng |
-| `data_table` | Dashboard | Table with search input, columns & status pills | Danh sách giao dịch, đơn hàng, nhật ký hệ thống |
-| `alert_banner` | Feedback | Status banner (info, warning, critical, success) | Cảnh báo lỗi, thông báo bảo trì, sự cố |
-| `hero_section` | Marketing | Stark EaseUI hero with badge, headline, dual CTAs | Trang chủ, banner đầu trang sản phẩm |
-| `feature_grid` | Marketing | 3-card micro-border grid with Lucide icons | Giới thiệu tính năng, ưu điểm công nghệ |
-| `pricing_table` | Marketing | Multi-tier cards with highlight badge & checklists | Bảng giá SaaS, so sánh gói cước dịch vụ |
-| `cta_section` | Marketing | High-contrast black section with email input | Kêu gọi đăng ký, chốt đơn cuối trang |
-| `kanban_board` | Operations | Agile sprint task board with priority & assignees | Quản lý tiến độ dự án, kéo thả task |
-| `swarm_mission_control` | Agentic | Exception-based swarm observability & HITL actions | Giám sát bầy sub-agents, phân tích root cause, can thiệp khẩn cấp |
-
----
-
-## 🤖 Agentic Era Architecture: The Interaction & Steering Layer
-
-In the era of autonomous multi-agent swarms (2026–2030), `design-os-generative-ui` operates as the **Real-Time Interaction & Steering Layer** between humans and AI agents.
-
-### 1. Action Contracts & Human-in-the-Loop (HITL)
-Components are no longer passive displays—they are actionable contracts dispatching structured events back to the agent runtime:
-
-```tsx
-import { listenDesignOSActions } from "design-os-generative-ui";
-
-// Listen to actions dispatched by interactive components (e.g. SwarmMissionControl)
-const unsubscribe = listenDesignOSActions((detail) => {
-  console.log(`Action triggered: ${detail.action.label} (${detail.action.id})`);
-  console.log(`Blast radius: ${detail.action.blastRadius}`); // 'low' | 'medium' | 'critical'
-  
-  if (detail.action.id === "approve_mutation") {
-    agentRuntime.resumeTask(detail.componentId);
-  }
-});
-```
-
-### 2. Strict Local-Only (Air-Gapped & $0 Token)
-Enforce zero data leakage by restricting inference entirely to Apple Silicon with automatic local deterministic fallback:
-
-```tsx
-const result = await composer.compose("Theo dõi tiến độ bưu kiện", {
-  localOnly: true, // Guarantees zero cloud calls (Air-Gapped / HIPAA compliant)
-});
-```
-
----
-
-## 📊 Empirical Benchmarks on Apple Silicon
-
-Measured on Apple Silicon Mac (`macOS`, `MLX 0.32.2`, `torch 2.14 MPS`):
-
-* **Laya-MLX P50 Decision Latency**: **6.53 ms**
-* **Cascade Router Speedup**: **3.41x faster** than pure cloud API
-* **Local Resolution Ratio**: **70.0%** of prompts resolved locally on Mac
-* **API Cost Reduction**: **70.0%**
-* **Test Suite Passing**: **100% Tests Passed** (Zod Validated, Purple Ban Compliant)
-
----
-
-## 🧪 Running Tests & Playground
+**Or from your terminal (Codex, Gemini CLI, Antigravity, OpenCode, or standalone CLI):**
 
 ```bash
-# Run comprehensive Agentic Era test suite (Local-Only, Action Contracts, Swarm)
-npx tsx tests/test-agentic-upgrade.ts
+git clone https://github.com/jangtrinh/design-os-generative-ui.git
+cd design-os-generative-ui
+npm test
+```
 
-# Run 10-Case Multi-Domain Benchmark
-npx tsx tests/demo-10-cases.ts
+### 2. Ask in plain English
 
-# Run Hybrid Synthesis Test (System 2 Synthesized -> System 1 Routed)
-npx tsx tests/test-hybrid-kanban.ts
+Open your project in your AI coding agent and describe what you need:
 
-# Launch Live Interactive Playground (Vite + React)
-npm run dev:playground
-# Open http://localhost:3300
+> "Build a stream-safe interactive compound-interest and Monte Carlo simulator widget using DesignOSBridge and Chart.js."
+
+> "Wrap our LLM token stream in createStreamRenderer so incomplete HTML tags reconcile at 60fps via morphdom without resetting canvas state."
+
+> "Audit this generative UI widget against the DESIGN:OS interactive widget guidelines (zero raw emojis, dark-mode adaptive tokens, and XSS sanitization)."
+
+### 3. Verify your setup
+
+```bash
+python3 scripts/self_check.py
 ```
 
 ---
 
-## 📄 License
-Apache-2.0
+## What it makes
 
+Every deliverable produced by `design-os-generative-ui` is backed by a deterministic verification gate rather than freehand AI guesswork.
+
+<p align="center">
+  <img src="docs/images/cover.png" alt="DESIGN:OS Generative UI Output Specimen" width="840"><br>
+  <sub>Prompt: <code>"Build a stream-safe interactive compound-interest and Monte Carlo simulator widget using DesignOSBridge and Chart.js."</code></sub>
+</p>
+
+| Deliverable / Mode | Best for | Output Format | Verification Gate |
+| :--- | :--- | :--- | :--- |
+| **Streaming DOM Reconciler** | Rendering partial LLM HTML/SVG chunks smoothly at 60fps | `createStreamRenderer (ESM/Browser)` | `Zero layout thrash or state loss` |
+| **Bidirectional Host Bridge** | Connecting interactive widget controls back to the host AI agent conversation | `DesignOSBridge SDK` | `Full unit & integration test PASS` |
+| **Generative Widget Guidelines** | Teaching agents how to compose Charts, KaTeX, Mermaid, and Three.js widgets | `skills/design-os-generative-ui/SKILL.md` | `python3 scripts/self_check.py` |
+
+---
+
+## Installation
+
+Choose the setup that matches your AI coding agent. Every option installs the same canonical skill (`skills/design-os-generative-ui/SKILL.md`) and `/doctor` diagnostic suite.
+
+### Claude Code
+
+Run these two commands inside Claude Code:
+
+```text
+/plugin marketplace add jangtrinh/design-os-generative-ui
+/plugin install design-os-generative-ui@design-os-generative-ui
+```
+
+### OpenAI Codex
+
+Install to your personal Codex skills directory:
+
+```bash
+git clone https://github.com/jangtrinh/design-os-generative-ui.git /tmp/design-os-generative-ui
+mkdir -p ~/.codex/skills/design-os-generative-ui ~/.codex/prompts
+cp -R /tmp/design-os-generative-ui/skills/design-os-generative-ui/* ~/.codex/skills/design-os-generative-ui/
+cp /tmp/design-os-generative-ui/prompts/doctor.md ~/.codex/prompts/design-os-generative-ui-doctor.md
+rm -rf /tmp/design-os-generative-ui
+```
+
+### Gemini CLI & Google Antigravity
+
+```bash
+git clone https://github.com/jangtrinh/design-os-generative-ui.git /tmp/design-os-generative-ui
+mkdir -p ~/.gemini/skills/design-os-generative-ui
+cp -R /tmp/design-os-generative-ui/skills/design-os-generative-ui/* ~/.gemini/skills/design-os-generative-ui/
+rm -rf /tmp/design-os-generative-ui
+```
+
+### OpenCode, Cursor, Windsurf & Other Agent Harnesses
+
+```bash
+git clone https://github.com/jangtrinh/design-os-generative-ui.git /tmp/design-os-generative-ui
+mkdir -p ~/.agents/skills/design-os-generative-ui
+cp -R /tmp/design-os-generative-ui/skills/design-os-generative-ui/* ~/.agents/skills/design-os-generative-ui/
+rm -rf /tmp/design-os-generative-ui
+```
+
+<details>
+<summary>Verify or uninstall</summary>
+
+**Verify installation:**
+
+```bash
+python3 scripts/self_check.py
+```
+
+Or run `/doctor` inside Claude Code / Codex to inspect installed skill paths, plugin manifests, and gate health.
+
+**Uninstall:**
+
+```bash
+rm -rf ~/.claude/skills/design-os-generative-ui ~/.codex/skills/design-os-generative-ui ~/.gemini/skills/design-os-generative-ui ~/.agents/skills/design-os-generative-ui
+```
+
+</details>
+
+---
+
+## Usage & Prompt Cookbook
+
+Once installed, `skills/design-os-generative-ui/SKILL.md` activates automatically when your prompt matches its domain triggers. Browse [`docs/cookbook.md`](docs/cookbook.md) for copy-paste prompt recipes.
+
+**Generate & Scaffold**
+
+```text
+"Build a stream-safe interactive compound-interest and Monte Carlo simulator widget using DesignOSBridge and Chart.js."
+```
+
+**Audit & Verify**
+
+```text
+"Wrap our LLM token stream in createStreamRenderer so incomplete HTML tags reconcile at 60fps via morphdom without resetting canvas state."
+```
+
+**Export & Automate**
+
+```text
+"Audit this generative UI widget against the DESIGN:OS interactive widget guidelines (zero raw emojis, dark-mode adaptive tokens, and XSS sanitization)."
+```
+
+---
+
+## Commands & Diagnostics
+
+| Command | Environment | What it does |
+| :--- | :--- | :--- |
+| `/doctor` | Claude Code / Codex | Read-only diagnostic check of installed skill paths, plugin manifests, and runtime prerequisites |
+| `python3 scripts/self_check.py` | Terminal / CI | Deterministic offline verification of manifests, skill contracts, and governance files |
+| `npm test` | Terminal / CI | Run the streaming sanitizer, morphdom reconciliation, and DesignOSBridge test suite |
+
+---
+
+## How it works
+
+1. **Intent Routing** — Your AI agent matches your request against `skills/design-os-generative-ui/SKILL.md` frontmatter triggers.
+2. **Progressive Context Loading** — Only the entry-point `SKILL.md` router loads initially; detailed recipes and scripts load on demand.
+3. **Deterministic Execution** — Domain scripts and contracts execute locally with reproducible inputs and outputs.
+4. **Gate Verification** — `scripts/self_check.py` and domain verifiers (`npm test`) validate the artifact before completion.
+5. **Zero-Telemetry Delivery** — Verified files are written directly to your workspace with zero external network calls.
+
+```text
+User Prompt / CLI Invocation
+            │
+            ▼
+┌───────────────────────────────────────────────┐
+│ skills/design-os-generative-ui/SKILL.md
+│ Progressive disclosure router & hard rules    │
+└───────────┬───────────────────────────────────┘
+            │ loads on demand
+            ▼
+┌───────────────────────────────────────────────┐
+│ npm test
+│ Deterministic build & contract enforcement    │
+└───────────┬───────────────────────────────────┘
+            │ verifies
+            ▼
+┌───────────────────────────────────────────────┐
+│ python3 scripts/self_check.py + /doctor       │
+│ Zero-telemetry local verification gate        │
+└───────────────────────────────────────────────┘
+```
+
+### What loads when
+
+`design-os-generative-ui` uses progressive context disclosure so your agent's context window stays fast and focused:
+
+| File | Loaded when |
+| :--- | :--- |
+| `skills/design-os-generative-ui/SKILL.md` | Always (~100–150 lines) — routing rules, triggers, and execution workflow |
+| `docs/cookbook.md` | When selecting multi-step prompt recipes or domain patterns |
+| `commands/doctor.md` / `prompts/doctor.md` | Only when running `/doctor` diagnostics |
+| `llms.txt` | When indexed by AI answer engines, RAG pipelines, or repo crawlers |
+
+---
+
+## File structure
+
+```text
+design-os-generative-ui/
+├── .claude-plugin/
+│   ├── plugin.json                 # Claude Code plugin manifest
+│   └── marketplace.json            # Claude Code marketplace catalog
+├── .codex-plugin/
+│   └── plugin.json                 # OpenAI Codex plugin & interface manifest
+├── .agents/
+│   └── plugins/marketplace.json    # Cross-agent local plugin registry
+├── .factory-plugin/
+│   ├── plugin.json                 # Factory / Droid plugin manifest
+│   └── marketplace.json            # Factory marketplace metadata
+├── skills/
+│   └── design-os-generative-ui/
+│       └── SKILL.md                # Canonical agent skill entrypoint
+├── commands/
+│   └── doctor.md                   # /doctor diagnostic slash command
+├── prompts/
+│   └── doctor.md                   # Codex diagnostic prompt mirror
+├── scripts/
+│   └── self_check.py               # Deterministic repository & skill self-check
+├── docs/
+│   ├── cookbook.md                 # Copy-paste prompt recipes by job
+│   └── llms.txt                    # GEO / LLM discovery index
+├── PRIVACY.md                      # Zero-telemetry & local-first privacy commitment
+├── SECURITY.md                     # Vulnerability disclosure & security policy
+├── CONTRIBUTING.md                 # Contribution workflow & verification rules
+├── CODE_OF_CONDUCT.md              # Contributor Covenant code of conduct
+├── CHANGELOG.md                    # Release history
+├── llms.txt                        # Root LLM indexing manifest
+├── LICENSE                         # MIT License
+└── README.md
+```
+
+---
+
+## Quality bar & Limitations
+
+### It's working if...
+
+- `python3 scripts/self_check.py` prints `ok: design-os-generative-ui self-check passed (design-os-generative-ui)` and exits `0`.
+- `npm test` passes with zero contract or test regressions.
+- Your AI coding agent loads `skills/design-os-generative-ui/SKILL.md` automatically when given any prompt from [`docs/cookbook.md`](docs/cookbook.md).
+- Network traffic during execution remains zero (guaranteed by [`PRIVACY.md`](PRIVACY.md)).
+
+### When not to use
+
+- Static marketing landing pages that are not streamed or dynamically generated by an AI agent (use `design-os-github-page`).
+- Native iOS/macOS SwiftUI applications (use `design-os-apple`).
+- Server-side batch PDF generation (use `design-os-origami`).
+
+---
+
+## DESIGN:OS Ecosystem
+
+`design-os-generative-ui` is one of the 13 open-source engines in the **`DESIGN:OS`** ecosystem:
+
+| Engine | Live Docs | Repository | Layer |
+| :--- | :--- | :--- | :--- |
+| **DESIGN:OS CLI** | [jangtrinh.github.io/design-os](https://jangtrinh.github.io/design-os/) | [`jangtrinh/design-os`](https://github.com/jangtrinh/design-os) | `cli` |
+| **Knowledge Builder** | [jangtrinh.github.io/design-os-knowledge-builder](https://jangtrinh.github.io/design-os-knowledge-builder/) | [`jangtrinh/design-os-knowledge-builder`](https://github.com/jangtrinh/design-os-knowledge-builder) | `compiler` |
+| **Figma Plugin & CLI** | [jangtrinh.github.io/design-os-figma-plugin](https://jangtrinh.github.io/design-os-figma-plugin/) | [`jangtrinh/design-os-figma-plugin`](https://github.com/jangtrinh/design-os-figma-plugin) | `plugin` |
+| **SVG Animation Engine** | [jangtrinh.github.io/design-os-svg-animation](https://jangtrinh.github.io/design-os-svg-animation/) | [`jangtrinh/design-os-svg-animation`](https://github.com/jangtrinh/design-os-svg-animation) | `engine` |
+| **3D Blender Agent** | [jangtrinh.github.io/design-os-3d-blender](https://jangtrinh.github.io/design-os-3d-blender/) | [`jangtrinh/design-os-3d-blender`](https://github.com/jangtrinh/design-os-3d-blender) | `3d / cad` |
+| **OPAH ONE Drone** | [jangtrinh.github.io/design-os-drone-showcase](https://jangtrinh.github.io/design-os-drone-showcase/) | [`jangtrinh/design-os-drone-showcase`](https://github.com/jangtrinh/design-os-drone-showcase) | `hardware` |
+| **GitHub Pages Engine** | [jangtrinh.github.io/design-os-github-page](https://jangtrinh.github.io/design-os-github-page/) | [`jangtrinh/design-os-github-page`](https://github.com/jangtrinh/design-os-github-page) | `pages` |
+| **Apple Design OS** | [jangtrinh.github.io/design-os-apple](https://jangtrinh.github.io/design-os-apple/) | [`jangtrinh/design-os-apple`](https://github.com/jangtrinh/design-os-apple) | `swiftui` |
+| **Agent Teacher** | [jangtrinh.github.io/design-os-pedagogy](https://jangtrinh.github.io/design-os-pedagogy/) | [`jangtrinh/design-os-pedagogy`](https://github.com/jangtrinh/design-os-pedagogy) | `pedagogy` |
+| **Origami CAD** | [jangtrinh.github.io/design-os-origami](https://jangtrinh.github.io/design-os-origami/) | [`jangtrinh/design-os-origami`](https://github.com/jangtrinh/design-os-origami) | `packaging` |
+| **Voice UX Architecture** | [jangtrinh.github.io/design-os-voice-ux](https://jangtrinh.github.io/design-os-voice-ux/) | [`jangtrinh/design-os-voice-ux`](https://github.com/jangtrinh/design-os-voice-ux) | `voice-ai` |
+| **Code2Flow** | [jangtrinh.github.io/design-os-code2flow](https://jangtrinh.github.io/design-os-code2flow/) | [`jangtrinh/design-os-code2flow`](https://github.com/jangtrinh/design-os-code2flow) | `ast / audit` |
+| **Generative UI** | [jangtrinh.github.io/design-os-generative-ui](https://jangtrinh.github.io/design-os-generative-ui/) | [`jangtrinh/design-os-generative-ui`](https://github.com/jangtrinh/design-os-generative-ui) | `runtime` |
+
+---
+
+## Contributing, Governance & License
+
+- **Contributing**: See [`CONTRIBUTING.md`](CONTRIBUTING.md) for pull request guidelines and verification gates (`python3 scripts/self_check.py`).
+- **Code of Conduct**: Governed by [`CODE_OF_CONDUCT.md`](CODE_OF_CONDUCT.md).
+- **Security & Privacy**: Zero telemetry — see [`SECURITY.md`](SECURITY.md) and [`PRIVACY.md`](PRIVACY.md).
+- **Changelog & LLM Index**: Track releases in [`CHANGELOG.md`](CHANGELOG.md) and machine-readable index in [`llms.txt`](llms.txt).
+- **License**: [MIT](LICENSE) © [Jang Trinh](https://github.com/jangtrinh).
+
+---
+
+If `design-os-generative-ui` saves you time, a star on GitHub helps other engineers and AI agents find it.
+
+<p align="left">
+  <a href="https://buymeacoffee.com/jangtrinh">
+    <img src="https://img.shields.io/badge/Buy_Me_a_Coffee-FFDD00?style=for-the-badge&logo=buy-me-a-coffee&logoColor=black" alt="Buy Me a Coffee">
+  </a>
+</p>

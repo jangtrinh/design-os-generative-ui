@@ -1,0 +1,42 @@
+{
+  "name": "design-os-generative-ui",
+  "description": "Stream-first interactive visual runtime for AI agents — 60fps `morphdom` DOM reconciliation, streaming HTML sanitizer, and WebGL/Canvas widget bridge.",
+  "version": "1.0.0",
+  "author": {
+    "name": "Jang Trinh",
+    "url": "https://github.com/jangtrinh"
+  },
+  "homepage": "https://jangtrinh.github.io/design-os-generative-ui/",
+  "repository": "https://github.com/jangtrinh/design-os-generative-ui",
+  "license": "MIT",
+  "keywords": [
+    "generative-ui",
+    "morphdom",
+    "streaming-html",
+    "claude-artifacts",
+    "webgl",
+    "ai-agents",
+    "design-os"
+  ],
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "DESIGN:OS Generative UI",
+    "shortDescription": "Stream-first interactive visual runtime for AI agents — 60fps `morphdom` DOM reconciliation, streaming HTML sanitizer, and WebGL/Canvas widget bridge.",
+    "longDescription": "Render live-streaming interactive calculators, 3D scenes, charts, and explorable explanations inside Claude Artifacts, ChatGPT Canvas, Gemini, and custom agent webviews with zero flicker.",
+    "developerName": "DESIGN:OS",
+    "category": "Developer Tools",
+    "capabilities": [
+      "Read",
+      "Write"
+    ],
+    "websiteURL": "https://jangtrinh.github.io/design-os-generative-ui/",
+    "privacyPolicyURL": "https://github.com/jangtrinh/design-os-generative-ui/blob/main/PRIVACY.md",
+    "defaultPrompt": [
+      "Build a stream-safe interactive compound-interest and Monte Carlo simulator widget using DesignOSBridge and Chart.js.",
+      "Wrap our LLM token stream in createStreamRenderer so incomplete HTML tags reconcile at 60fps via morphdom without resetting canvas state.",
+      "Audit this generative UI widget against the DESIGN:OS interactive widget guidelines (zero raw emojis, dark-mode adaptive tokens, and XSS sanitization)."
+    ],
+    "brandColor": "#202020",
+    "logo": "./docs/images/cover.png"
+  }
+}
