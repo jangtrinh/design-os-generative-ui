@@ -4,7 +4,7 @@
 # jekyll-seo-tag emits <title>, <meta name="description">, Open Graph and JSON-LD;
 # jekyll-sitemap emits sitemap.xml for Google Search Console.
 title: design-os-generative-ui
-description: Open-source generative UI runtime and guidelines for Claude Artifacts, ChatGPT Canvas, and Gemini: streaming HTML sanitizer, morphdom diffing, Chart.js, KaTeX, Mermaid, and Three.js.
+description: Source-available generative UI runtime and guidelines for Claude Artifacts, ChatGPT Canvas, and Gemini: streaming HTML sanitizer, morphdom diffing, Chart.js, KaTeX, Mermaid, and Three.js.
 url: https://jangtrinh.github.io
 baseurl: /design-os-generative-ui
 lang: en
@@ -18,7 +18,7 @@ nav:                        # one entry per Markdown page under docs/, in readin
   - { title: Deep dive, url: /deep-dive.html }
 footer:
   - { title: GitHub, url: https://github.com/jangtrinh/design-os-generative-ui }
-  - { title: MIT, url: https://github.com/jangtrinh/design-os-generative-ui/blob/main/LICENSE }
+  - { title: PolyForm Shield 1.0.0, url: https://github.com/jangtrinh/design-os-generative-ui/blob/main/LICENSE }
 plugins:
   - jekyll-seo-tag
   - jekyll-sitemap

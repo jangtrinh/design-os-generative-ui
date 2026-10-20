@@ -1,6 +1,6 @@
 # design-os-generative-ui
 
-> Open-source generative UI runtime and guidelines for Claude Artifacts, ChatGPT Canvas, and Gemini: streaming HTML sanitizer, morphdom diffing, Chart.js, KaTeX, Mermaid, and Three.js.
+> Source-available generative UI runtime and guidelines for Claude Artifacts, ChatGPT Canvas, and Gemini: streaming HTML sanitizer, morphdom diffing, Chart.js, KaTeX, Mermaid, and Three.js.
 
 Stream-first interactive visual runtime for AI agents — 60fps morphdom, WebGL, and zero-flicker DOM reconciliation.
 
