@@ -308,6 +308,10 @@ design-os-generative-ui/
 
 ---
 
+## Author
+
+Built by [Jang Trịnh](https://www.jang.work/?utm_source=github&utm_medium=readme&utm_campaign=design-os-generative-ui). More projects, case studies and writing at [jang.work](https://www.jang.work/?utm_source=github&utm_medium=readme&utm_campaign=design-os-generative-ui).
+
 ## Contributing, Governance & License
 
 - **Contributing**: See [`CONTRIBUTING.md`](CONTRIBUTING.md) for pull request guidelines and verification gates (`python3 scripts/self_check.py`).
